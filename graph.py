@@ -48,8 +48,15 @@ def graph_player(stats_df, player, colors, cols, pct_cols, filter_by_position = 
       value = '{:.1%}'.format(playerStats[col])
     else:
       value = '{:.1f}'.format(playerStats[col])
-    percentile = 'Percentile: ' + '{:.0%}'.format(playerStats[f'{col}_pct'])
-    title = col + '\n' + value + '\n' + percentile
+    percentile = playerStats[f'{col}_pct']
+    percentile_text = 'Percentile: ' + '{:.0%}'.format(playerStats[f'{col}_pct'])
+    title = col + '\n' + value + '\n' + percentile_text
+    if (percentile > .8):
+      text_color = 'g'
+    elif (percentile > .4):
+      text_color = 'y'
+    else:
+      text_color = 'r'
     axs[index].text(
         1.2,
         0.5,
@@ -57,7 +64,8 @@ def graph_player(stats_df, player, colors, cols, pct_cols, filter_by_position = 
         transform=axs[index].transAxes,
         horizontalalignment='right',
         verticalalignment='center',
-        fontsize=16
+        fontsize=16,
+        color=text_color
     )
   plt.savefig(f'output/{player} 2019-20 Shooting.png', bbox_inches='tight', pad_inches=2)
 
