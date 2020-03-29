@@ -1,2 +1,2 @@
 # nba-shots
-Functions gor graphing NBA shot efficiency
+Functions for graphing NBA shot efficiency
