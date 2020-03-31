@@ -21,6 +21,7 @@ def graph_comparison(stats_df, players, cols, pct_cols, filter_by_position = Fal
   fig.suptitle(
       chart_title,
       fontsize=30,
+      fontweight='bold',
       y=.9,
       x=-.1,
       horizontalalignment='left',
