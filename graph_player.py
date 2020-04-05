@@ -23,7 +23,7 @@ def graph_player(stats_df, player, team, cols, pct_cols, filter_by_position = Fa
     df_to_graph = pd.DataFrame(totals_df_copy)
     sub_title = 'Compared with all players'
   for col in cols:
-    df_to_graph[f'{col}_pct'] = df_to_graph[col].rank(pct=True)
+    df_to_graph[f'{col}_pct'] = df_to_graph.loc[:,col].rank(pct=True)
   playerStats = df_to_graph.loc[df_to_graph['Name']==player].squeeze()
   fig, axs = plt.subplots(len(cols), 1, figsize=(8,len(cols)*4))
   sns.despine(left=True)
@@ -55,6 +55,22 @@ def graph_player(stats_df, player, team, cols, pct_cols, filter_by_position = Fa
       fontsize=16,
       style='italic'
   )
+  fig.text(
+      0,
+      .05,
+      'By Andrew Lawlor',
+      horizontalalignment='left',
+      verticalalignment='bottom',
+      fontsize=12
+  )
+  fig.text(
+      0,
+      .05,
+      'Data from basketball-reference.com',
+      horizontalalignment='left',
+      verticalalignment='top',
+      fontsize=12
+  )
   for index, col in enumerate(cols):
     sns.distplot(
       df_to_graph[col],
@@ -73,9 +89,9 @@ def graph_player(stats_df, player, team, cols, pct_cols, filter_by_position = Fa
     percentile = playerStats[f'{col}_pct']
     percentile_text = 'Percentile: ' + '{:.0%}'.format(playerStats[f'{col}_pct'])
     value_text = value + '\n' + percentile_text
-    if (percentile > .8):
+    if (percentile >= .67):
       text_color = 'g'
-    elif (percentile > .4):
+    elif (percentile >= .33):
       text_color = 'y'
     else:
       text_color = 'r'

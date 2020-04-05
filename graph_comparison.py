@@ -13,7 +13,7 @@ def graph_comparison(stats_df, players, cols, pct_cols, filter_by_position = Fal
     df_to_graph = pd.DataFrame(totals_df_copy)
     template_label = 'Compared with all players'
   for col in cols:
-    df_to_graph[f'{col}_pct'] = df_to_graph[col].rank(pct=True)
+    df_to_graph[f'{col}_pct'] = df_to_graph.loc[:,col].rank(pct=True)
   playerStats = df_to_graph.loc[df_to_graph['Name'].isin(players.Name)].squeeze()
   fig, axs = plt.subplots(len(cols), 1, figsize=(8,len(cols)*4))
   sns.despine(left=True)
@@ -88,5 +88,21 @@ def graph_comparison(stats_df, players, cols, pct_cols, filter_by_position = Fal
       horizontalalignment='right',
       fontsize=16,
       style='italic'
+  )
+  fig.text(
+      0,
+      .05,
+      'By Andrew Lawlor',
+      horizontalalignment='left',
+      verticalalignment='bottom',
+      fontsize=12
+  )
+  fig.text(
+      0,
+      .05,
+      'Data from basketball-reference.com',
+      horizontalalignment='left',
+      verticalalignment='top',
+      fontsize=12
   )
   plt.savefig(f'output/Comparison 2019-20 Shooting.png', bbox_inches='tight', pad_inches=2)

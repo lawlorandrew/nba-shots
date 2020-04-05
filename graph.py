@@ -50,7 +50,7 @@ graph_player(
 
 cols = ['2P%', '2PA', '3P%', '3PA', 'FT%', 'FTA', 'FT Rate'] # statistics to graph
 pct_cols = ['2P%', '3P%', 'FT%', 'FT Rate'] # the statistics that should be rendered as percentages
-players = pd.DataFrame([['Jayson Tatum', 'green'], ['LeBron James', 'purple']], columns=['Name', 'Color'])
+players = pd.DataFrame([['Jayson Tatum', '#00a55c'], ['Jaylen Brown', '#bb9753']], columns=['Name', 'Color'])
 graph_comparison(
     stats_df=totals_df,
     players=players,
@@ -58,3 +58,19 @@ graph_comparison(
     pct_cols=pct_cols,
     filter_by_position=False,
 )
+
+team = 'CHI' # the team to graph
+filter_by_position= False # whether or not the distributions should use only players of the same position, or all players
+position_to_use = None # the position the player should be treated as (if None, just use default position from data)
+colors=team_colors_df.loc[team_colors_df['Team'] == team].squeeze() # team colors to use
+cols = ['2P%', '2PA', '3P%', '3PA', 'FT%', 'FTA', 'FT Rate'] # statistics to graph
+pct_cols = ['2P%', '3P%', 'FT%', 'FT Rate'] # the statistics that should be rendered as percentages
+
+#graph_team(
+#    stats_df=totals_df,
+#    team=team,
+#    teamInfo=colors,
+#    cols=cols,
+#    pct_cols=pct_cols,
+#    filter_by_position=filter_by_position,
+#)
