@@ -5,6 +5,7 @@ import seaborn as sns
 from graph_comparison import graph_comparison
 from graph_player import graph_player_distributions, graph_player_with_shot_chart
 from graph_team import graph_team_distributions, graph_team_with_shot_chart
+from radar_plot import radar_plot
 import json
 
 totals_df = pd.read_csv('./data/nba_per_poss.csv')
@@ -79,4 +80,14 @@ graph_team_with_shot_chart(
   teams_df=team_colors_df,
   shots_df=shot_df,
   pct_cols=pct_cols,
+)
+
+fig = plt.figure()
+radar_plot(
+  totals_df=totals_df,
+  player_name='Zach LaVine',
+  teams_df=team_colors_df,
+  cols=['2PA', '3PA', 'FTA', '2P%', '3P%'],
+  pct_cols=['2P%', '3P%'],
+  fig=fig
 )
