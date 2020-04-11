@@ -11,11 +11,7 @@ totals_df = pd.read_csv('./data/nba_per_poss.csv')
 totals_df['Name'] = totals_df['Player'].str.split('\\').str[0]
 team_colors_df = pd.read_csv('./data/nba_team_colors.csv')
 team_per_poss_df = pd.read_csv('./data/nba_team_per_poss.csv')
-with open('./data/bulls_shots.json') as jsonFile:
-  data = json.load(jsonFile)
-  headers = data['resultSets'][0]['headers']
-  shots = data['resultSets'][0]['rowSet']
-  shot_df = pd.DataFrame(shots, columns=headers)
+shot_df = pd.read_csv('./data/all_shots.csv')
 
 totals_df['FT Rate'] = totals_df['FTA'] / totals_df['FGA']
 team_per_poss_df['FT Rate'] = team_per_poss_df['FTA'] / team_per_poss_df['FGA']
@@ -40,7 +36,7 @@ graph_player_distributions(
     position_to_use=position_to_use,
 )
 
-shot_chart_player = 'Coby White'
+shot_chart_player = 'Jayson Tatum'
 
 graph_player_with_shot_chart(
     stats_df=totals_df,
@@ -67,19 +63,18 @@ graph_comparison(
     filter_by_position=False,
 )
 
-team = 'CHI'  # the team to graph
 # the statistics that should be rendered as percentages
 pct_cols = ['2P%', '3P%', 'FT%', 'FT Rate']
 
-graph_team_distributions(
-  team_name='Chicago Bulls',
-  stats_df=team_per_poss_df,
-  teams_df=team_colors_df,
-  pct_cols=pct_cols,
-)
+#graph_team_distributions(
+#  team_name='Chicago Bulls',
+#  stats_df=team_per_poss_df,
+#  teams_df=team_colors_df,
+#  pct_cols=pct_cols,
+#)
 
 graph_team_with_shot_chart(
-  team_name='Chicago Bulls',
+  team_name='Boston Celtics',
   stats_df=team_per_poss_df,
   teams_df=team_colors_df,
   shots_df=shot_df,
