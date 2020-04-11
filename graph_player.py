@@ -1,24 +1,16 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 from draw_court import draw_court
+from dist_plot import dist_plot
+from shot_chart import shot_chart
+from utils import get_team_info
 
-#graph settings
-# player - the player to graph
-# filter_by_position (default False) whether or not the distributions should use only players of the same position, or all players
-# position_to_use (default None) the position the player should be treated as (if None, just use default position from data)
-# team - team info to use
-# cols - statistics to graph
-# pct_cols - the statistics that should be rendered as percentages
-# shot_df - the shot tracking df to plot
-
-def graph_player(stats_df, player, team, cols, pct_cols, shot_df, filter_by_position = False, position_to_use = None):
+def format_dataframe(stats_df, player_name, cols, filter_by_position, position_to_use):
   totals_df_copy = pd.DataFrame(stats_df)
   if (position_to_use is not None):
-    totals_df_copy.loc[totals_df_copy['Name'] == player, ['Pos']] = position_to_use
+    totals_df_copy.loc[totals_df_copy['Name'] == player_name, ['Pos']] = position_to_use
   if (filter_by_position is True):
-    position = totals_df_copy.loc[totals_df_copy['Name']==player, ['Pos']].squeeze()
+    position = totals_df_copy.loc[totals_df_copy['Name']==player_name, ['Pos']].squeeze()
     df_to_graph = totals_df_copy.loc[totals_df_copy['Pos'] == position]
     sub_title = 'Compared with ' + position + 's'
   else:
@@ -26,91 +18,130 @@ def graph_player(stats_df, player, team, cols, pct_cols, shot_df, filter_by_posi
     sub_title = 'Compared with all players'
   for col in cols:
     df_to_graph[f'{col}_pct'] = df_to_graph[col].rank(pct=True)
-  playerStats = df_to_graph.loc[df_to_graph['Name']==player].squeeze()
-  # fig, axs = plt.subplots(len(cols), 1, figsize=(8,len(cols)*4))
-  fig = plt.figure(figsize=(30,len(cols)*3), constrained_layout=True)
+  player_stats_df = df_to_graph.loc[df_to_graph['Name'] == player_name].squeeze()
+  return df_to_graph, player_stats_df, sub_title
+
+#graph settings
+# player - the player to graph
+# filter_by_position (default False) whether or not the distributions should use only players of the same position, or all players
+# position_to_use (default None) the position the player should be treated as (if None, just use default position from data)
+# teams_df - dataframe of team info
+# cols - statistics to graph
+# pct_cols - the statistics that should be rendered as percentages
+# shot_df - the shot tracking df to plot
+
+def graph_player_with_shot_chart(stats_df, player_name, teams_df, cols, pct_cols, shot_df, filter_by_position = False, position_to_use = None):
+  team_info = get_team_info(stats_df=stats_df, teams_df=teams_df, player_name=player_name)
+  df_to_graph, player_stats_df, sub_title = format_dataframe(
+    stats_df=stats_df,
+    player_name=player_name,
+    cols=cols,
+    filter_by_position=filter_by_position,
+    position_to_use=position_to_use
+  )
+  fig = plt.figure(figsize=(40,len(cols)*4), constrained_layout=True)
   gs = fig.add_gridspec(len(cols), 6)
-  chart_title = player
+  chart_title = player_name
   fig.suptitle(
       chart_title,
-      fontsize=30,
+      fontsize=80,
       fontweight='bold',
-      y=1,
+      y=1.02,
       x=0,
       horizontalalignment='left',
       verticalalignment='bottom'
   )
   fig.text(
-      1,
-      1,
-      sub_title,
+      x=1,
+      y=1.02,
+      s=sub_title,
       horizontalalignment='right',
-      verticalalignment='bottom',
-      fontsize=16,
+      verticalalignment='top',
+      fontsize=40,
       style='italic'
   )
   fig.text(
-      0,
-      1,
-      team['Full'],
+      x=0,
+      y=1.02,
+      s=f'{team_info["Full"]}, 2019-20',
       horizontalalignment='left',
       verticalalignment='top',
-      fontsize=16,
+      fontsize=40,
       style='italic'
   )
   ax1 = fig.add_subplot(gs[:,:5])
-  ax1 = draw_court(ax=ax1, outer_lines=True)
-  ax1.set_xlim(250,-250)
-  ax1.set_ylim(-50,430)
-  ax1.axis('off')
-  made_shots = shot_df[shot_df['EVENT_TYPE'] == 'Made Shot']
-  missed_shots = shot_df[shot_df['EVENT_TYPE'] == 'Missed Shot']
-  ax1.scatter(made_shots.LOC_X, made_shots.LOC_Y, c='#000080', label='Makes', s=50, zorder=15)
-  ax1.scatter(missed_shots.LOC_X, missed_shots.LOC_Y, c='#DC143C', label='Misses', s=50, zorder=10)
-  ax1.legend(loc='upper left', bbox_to_anchor=(0.02,0.98), fontsize=20)
+  ax1 = draw_court(ax=ax1, outer_lines=False)
+  player_shot_df = shot_df[shot_df['PLAYER_NAME'] == player_name]
+  shot_chart(shot_df=player_shot_df, ax=ax1)
   for index, col in enumerate(cols):
     ax = fig.add_subplot(gs[index,5])
-    sns.distplot(
-      df_to_graph[col],
-      ax=ax,
-      hist=False,
-      kde_kws={"shade": True},
-      color=team['Primary'],
+    is_pct_col = col in pct_cols
+    dist_plot(
+        totals=df_to_graph,
+        stats_to_graph=player_stats_df,
+        col=col,
+        team=team_info,
+        ax=ax,
+        is_pct_col=is_pct_col
     )
-    ax.axvline(playerStats[col], color=team['Secondary'])
-    sns.despine(left=True)
-    ax.set_xlabel('')
-    ax.yaxis.set_visible(False)
-    if (col in pct_cols):
-      value = '{:.1%}'.format(playerStats[col])
-    else:
-      value = '{:.1f}'.format(playerStats[col])
-    percentile = playerStats[f'{col}_pct']
-    percentile_text = 'P: ' + '{:.0f}'.format(playerStats[f'{col}_pct']*100)
-    value_text = value + '\n' + percentile_text
-    if (percentile > .8):
-      text_color = 'g'
-    elif (percentile > .4):
-      text_color = 'y'
-    else:
-      text_color = 'r'
-    ax.text(
-        1.1,
-        0.5,
-        value_text,
-        transform=ax.transAxes,
-        horizontalalignment='right',
-        verticalalignment='center',
-        fontsize=16,
-        color=text_color
+  plt.savefig(f'output/{player_name} 2019-20 Shot Chart.png', bbox_inches='tight', pad_inches=2)
+
+#graph settings
+# player_name - the player to graph
+# filter_by_position (default False) whether or not the distributions should use only players of the same position, or all players
+# position_to_use (default None) the position the player should be treated as (if None, just use default position from data)
+# teams_df - dataframe of team info
+# cols - statistics to graph
+# pct_cols - the statistics that should be rendered as percentages
+
+def graph_player_distributions(stats_df, player_name, teams_df, cols, pct_cols, filter_by_position = False, position_to_use = None):
+  team_info = get_team_info(stats_df=stats_df, teams_df=teams_df, player_name=player_name)
+  df_to_graph, player_stats_df, sub_title = format_dataframe(
+    stats_df=stats_df,
+    player_name=player_name,
+    cols=cols,
+    filter_by_position=filter_by_position,
+    position_to_use=position_to_use
+  )
+  fig = plt.figure(figsize=(8,len(cols)*4), constrained_layout=True)
+  gs = fig.add_gridspec(len(cols), 1)
+  chart_title = player_name
+  fig.suptitle(
+      chart_title,
+      fontsize=30,
+      fontweight='bold',
+      y=1.02,
+      x=-.05,
+      horizontalalignment='left',
+      verticalalignment='bottom'
+  )
+  fig.text(
+      x=1.05,
+      y=1.02,
+      s=sub_title,
+      horizontalalignment='right',
+      verticalalignment='top',
+      fontsize=24,
+      style='italic'
+  )
+  fig.text(
+      x=-.05,
+      y=1.02,
+      s=f'{team_info["Full"]}, 2019-20',
+      horizontalalignment='left',
+      verticalalignment='top',
+      fontsize=24,
+      style='italic'
+  )
+  for index, col in enumerate(cols):
+    ax = fig.add_subplot(gs[index,0])
+    is_pct_col = col in pct_cols
+    dist_plot(
+        totals=df_to_graph,
+        stats_to_graph=player_stats_df,
+        col=col,
+        team=team_info,
+        ax=ax,
+        is_pct_col=is_pct_col
     )
-    ax.text(
-        -.1,
-        0.5,
-        col,
-        transform=ax.transAxes,
-        horizontalalignment='left',
-        verticalalignment='center',
-        fontsize=16,
-    )
-  plt.savefig(f'output/{player} 2019-20 Shooting.png', bbox_inches='tight', pad_inches=2)
+  plt.savefig(f'output/{player_name} 2019-20 Shooting Distribution.png', bbox_inches='tight', pad_inches=2)

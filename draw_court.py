@@ -17,7 +17,7 @@ def draw_court(ax=None, color='black', outer_lines=False):
     # Diameter of a hoop is 18" so it has a radius of 9", which is a value
     # 7.5 in our coordinate system
     hoop = Circle((0, 0), radius=7.5, linewidth=inner_lw,
-                  color=color, fill=False, zorder=0)
+                  color=color, fill=False, zorder=25)
 
     # Create backboard
     backboard = Rectangle((-30, -7.5), 60, -1,
@@ -25,7 +25,13 @@ def draw_court(ax=None, color='black', outer_lines=False):
 
     # The paint
     # Create the outer box 0f the paint, width=16ft, height=19ft
-    outer_box = Rectangle((-80, -47.5), 160, 190, linewidth=inner_lw, color=color,
+    left_paint = Rectangle((-80, -47.5), 0, 190, linewidth=inner_lw, color=color,
+                          fill=False, zorder=0)
+        # Create the outer box 0f the paint, width=16ft, height=19ft
+    right_paint = Rectangle((80, 142.5), 0, -190, linewidth=inner_lw, color=color,
+                          fill=False, zorder=0)
+        # Create the outer box 0f the paint, width=16ft, height=19ft
+    free_throw_line = Rectangle((-80, 142.5), 160, 0, linewidth=inner_lw, color=color,
                           fill=False, zorder=0)
 
     # Create free throw top arc
@@ -49,7 +55,7 @@ def draw_court(ax=None, color='black', outer_lines=False):
                     color=color, zorder=0)
 
     # List of the court elements to be plotted onto the axes
-    court_elements = [hoop, backboard, outer_box, top_free_throw,
+    court_elements = [hoop, backboard, left_paint, right_paint, free_throw_line, top_free_throw,
                       corner_three_a, corner_three_b, three_arc, restricted]
 
     if outer_lines:
