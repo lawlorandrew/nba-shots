@@ -6,6 +6,8 @@ from graph_comparison import graph_comparison
 from graph_player import graph_player_distributions, graph_player_with_shot_chart
 from graph_team import graph_team_distributions, graph_team_with_shot_chart
 from radar_plot import radar_plot
+from advanced_stats_radar import plot_advanced_stats_radar
+from per_poss_radar import plot_per_poss_radar
 import json
 
 totals_df = pd.read_csv('./data/nba_per_poss.csv')
@@ -86,53 +88,19 @@ graph_team_with_shot_chart(
 
 fig = plt.figure()
 fig.add_gridspec(1,1)
-radar_plot(
+plot_per_poss_radar(
+  player_name='Kyrie Irving',
   totals_df=totals_df,
-  player_name='Kawhi Leonard',
-  teams_df=team_colors_df,
-  cols=[
-    '3PA',
-    '3P%',
-    'FTA',
-    'FT%',
-    '2PA',
-    '2P%',
-    'TRB',
-    'BLK',
-    'PF',
-    'STL',
-    'TOV',
-    'AST',
-  ],
-  pct_cols=['2P%', '3P%', 'FT%'],
-  inverse_cols=['TOV', 'PF'],
-  fig=fig,
+  team_colors_df=team_colors_df,
+  fig=fig
 )
 
 fig = plt.figure()
 fig.add_gridspec(1,1)
-radar_plot(
-  totals_df=advanced_stats_df,
-  player_name='Rudy Gobert',
-  teams_df=team_colors_df,
-  cols=[
-    'FTr',
-    'TS%',
-    '3PAr',
-    'AST%',
-    'USG%',
-    'TOV%',
-    'STL%',
-    'BLK%',
-    'TRB%',
-  ],
-  pct_cols=[
-    'TS%',
-    '3PAr',
-    'FTr',
-  ],
-  inverse_cols=[
-    'TOV%'
-  ],
-  fig=fig,
+plot_advanced_stats_radar(
+  player_name='Kyrie Irving',
+  totals_df=totals_df,
+  advanced_stats_df=advanced_stats_df,
+  team_colors_df=team_colors_df,
+  fig=fig
 )

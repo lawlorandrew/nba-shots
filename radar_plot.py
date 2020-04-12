@@ -83,16 +83,3 @@ def radar_plot(totals_df, player_name, teams_df, cols, pct_cols, fig, inverse_co
   mainAx.xaxis.set_visible(True)
   mainAx.plot(thetas, values, color=team_info['Secondary'])
   mainAx.fill(thetas, values, color=team_info['Primary'], alpha=0.7)
-  plt.savefig(f'output/{player_name} Radar 2019-20.png')
-
-test_series = pd.Series(
-  data=[10, 20, 10, 30],
-  index=['stat1', 'stat2', 'stat3', 'stat4'],
-)
-test_totals = pd.DataFrame(
-  data=[[10, 20, 10, 30],[100, 50, 75, 80]],
-  columns=['stat1', 'stat2', 'stat3', 'stat4']
-)
-
-#fig = plt.figure()
-#radar_plot(totals_df=test_totals,stats_to_graph=test_series, cols=['stat1', 'stat2', 'stat3', 'stat4'], fig=fig)
