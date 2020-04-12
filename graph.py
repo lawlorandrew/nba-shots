@@ -12,6 +12,8 @@ totals_df = pd.read_csv('./data/nba_per_poss.csv')
 totals_df['Name'] = totals_df['Player'].str.split('\\').str[0]
 team_colors_df = pd.read_csv('./data/nba_team_colors.csv')
 team_per_poss_df = pd.read_csv('./data/nba_team_per_poss.csv')
+advanced_stats_df = pd.read_csv('./data/nba_advanced.csv')
+advanced_stats_df['Name'] = advanced_stats_df['Player'].str.split('\\').str[0]
 shot_df = pd.read_csv('./data/all_shots.csv')
 
 totals_df['FT Rate'] = totals_df['FTA'] / totals_df['FGA']
@@ -83,11 +85,54 @@ graph_team_with_shot_chart(
 )
 
 fig = plt.figure()
+fig.add_gridspec(1,1)
 radar_plot(
   totals_df=totals_df,
-  player_name='Zach LaVine',
+  player_name='Kawhi Leonard',
   teams_df=team_colors_df,
-  cols=['2PA', '3PA', 'FTA', '2P%', '3P%'],
-  pct_cols=['2P%', '3P%'],
-  fig=fig
+  cols=[
+    '3PA',
+    '3P%',
+    'FTA',
+    'FT%',
+    '2PA',
+    '2P%',
+    'TRB',
+    'BLK',
+    'PF',
+    'STL',
+    'TOV',
+    'AST',
+  ],
+  pct_cols=['2P%', '3P%', 'FT%'],
+  inverse_cols=['TOV', 'PF'],
+  fig=fig,
+)
+
+fig = plt.figure()
+fig.add_gridspec(1,1)
+radar_plot(
+  totals_df=advanced_stats_df,
+  player_name='Rudy Gobert',
+  teams_df=team_colors_df,
+  cols=[
+    'FTr',
+    'TS%',
+    '3PAr',
+    'AST%',
+    'USG%',
+    'TOV%',
+    'STL%',
+    'BLK%',
+    'TRB%',
+  ],
+  pct_cols=[
+    'TS%',
+    '3PAr',
+    'FTr',
+  ],
+  inverse_cols=[
+    'TOV%'
+  ],
+  fig=fig,
 )
