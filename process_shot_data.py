@@ -6,8 +6,15 @@ files = [
   './data/team_shot_data/bulls_shots.json',
   './data/team_shot_data/celtics_shots.json',
   './data/team_shot_data/heat_shots.json',
+  './data/team_shot_data/jazz_shots.json',
   './data/team_shot_data/lakers_shots.json',
+  './data/team_shot_data/magic_shots.json',
+  './data/team_shot_data/mavericks_shots.json',
+  './data/team_shot_data/pacers_shots.json',
+  './data/team_shot_data/pistons_shots.json',
+  './data/team_shot_data/raptors_shots.json',
   './data/team_shot_data/rockets_shots.json',
+  './data/team_shot_data/warriors_shots.json',
 ]
 all_shots_df = None
 for file in files:

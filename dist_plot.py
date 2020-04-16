@@ -9,7 +9,10 @@ def dist_plot(totals, stats_to_graph, col, team, ax, is_pct_col):
         color=team['Primary'],
     )
     ax.axvline(stats_to_graph[col], color=team['Secondary'])
-    sns.despine(left=True)
+    ax.spines['top'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['right'].set_visible(False)
     ax.set_xlabel('')
     ax.yaxis.set_visible(False)
     if (is_pct_col):
@@ -19,9 +22,9 @@ def dist_plot(totals, stats_to_graph, col, team, ax, is_pct_col):
     percentile = stats_to_graph[f'{col}_pct']
     percentile_text = 'P: ' + '{:.0f}'.format(stats_to_graph[f'{col}_pct']*100)
     value_text = value + '\n' + percentile_text
-    if (percentile > .8):
+    if (percentile > .67):
         text_color = 'g'
-    elif (percentile > .4):
+    elif (percentile > .33):
         text_color = 'y'
     else:
         text_color = 'r'

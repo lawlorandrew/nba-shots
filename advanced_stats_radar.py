@@ -1,36 +1,59 @@
 import matplotlib.pyplot as plt
 from radar_plot import radar_plot
+from utils import get_team_info
 
-def plot_advanced_stats_radar(player_name, totals_df, advanced_stats_df, team_colors_df, fig, gs = 111):
-  fouls_df = totals_df[['Name', 'PF']]
-  merged_df = advanced_stats_df.merge(fouls_df, on='Name')
-  merged_df.rename(columns={'PF': 'PF/100'}, inplace=True)
-  radar_plot(
-    totals_df=merged_df,
-    player_name=player_name,
-    teams_df=team_colors_df,
-    cols=[
-      'FTr',
-      'TS%',
-      '3PAr',
-      'AST%',
-      'USG%',
-      'TOV%',
-      'PF/100',
-      'STL%',
-      'BLK%',
-      'TRB%',
-    ],
-    pct_cols=[
-      'TS%',
-      '3PAr',
-      'FTr',
-    ],
-    inverse_cols=[
-      'TOV%',
-      'PF/100',
-    ],
-    fig=fig,
-    gs=gs
-  )
-  plt.savefig(f'output/{player_name} Advanced Radar 2019-20.png')
+
+def plot_advanced_stats_radar(player_name, totals_df, advanced_stats_df, team_colors_df, fig):
+    fouls_df = totals_df[['Name', 'PF']]
+    merged_df = advanced_stats_df.merge(fouls_df, on='Name')
+    merged_df.rename(columns={'PF': 'PF/100'}, inplace=True)
+    stats_to_graph = merged_df[merged_df['Name'] == player_name].squeeze()
+    team_info = get_team_info(
+        stats_df=totals_df, teams_df=team_colors_df, player_name=player_name)
+    radar_plot(
+        totals_df=merged_df,
+        stats_to_graph=stats_to_graph,
+        player_name=player_name,
+        team_info=team_info,
+        cols=[
+            'FTr',
+            'TS%',
+            '3PAr',
+            'AST%',
+            'USG%',
+            'TOV%',
+            'PF/100',
+            'STL%',
+            'BLK%',
+            'TRB%',
+        ],
+        pct_cols=[
+            'TS%',
+            '3PAr',
+            'FTr',
+        ],
+        inverse_cols=[
+            'TOV%',
+            'PF/100',
+        ],
+        fig=fig,
+    )
+    fig.suptitle(
+        player_name,
+        fontsize=20,
+        fontweight='bold',
+        y=.92,
+        x=.02,
+        horizontalalignment='left',
+        verticalalignment='bottom'
+    )
+    fig.text(
+        x=.02,
+        y=.92,
+        s='2019-20 Advanced Stats Radar',
+        horizontalalignment='left',
+        verticalalignment='top',
+        fontsize=12,
+        style='italic'
+    )
+    plt.savefig(f'output/{player_name} Advanced Radar 2019-20.png')

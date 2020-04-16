@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from math import pi
-from utils import get_team_info
 
 def get_tick_label(tick, index, col, pct_cols):
   if index == 0:
@@ -12,17 +11,20 @@ def get_tick_label(tick, index, col, pct_cols):
   else:
     return '{:.1f}'.format(tick)
 
-def radar_plot(totals_df, player_name, teams_df, cols, pct_cols, fig, inverse_cols=[], gs=111):
-  stats_to_graph = totals_df[totals_df['Name'] == player_name].squeeze()
-  team_info = get_team_info(stats_df = totals_df, teams_df=teams_df, player_name=player_name)
+def radar_plot(totals_df, stats_to_graph, player_name, team_info, cols, pct_cols, fig, gs=None, inverse_cols=[], label_font_size=12, tick_font_size=6, label_padding=15):
   num_ticks = 5
   N = len(cols)
   angles = np.arange(0, 360, 360.0/N)
-  axes = [fig.add_subplot(gs, projection="polar", label="axes%d" % i)
+  if gs is None:
+    gs = [0.15, 0.1, 0.65, 0.65]
+    axes = [fig.add_axes(gs, projection="polar", label="axes%d" % i)
                 for i in range(N)]
+  else:
+    axes = [fig.add_subplot(gs, projection="polar", label="axes%d" % i)
+                  for i in range(N)]
   mainAx = axes[0]
-  mainAx.set_thetagrids(angles, labels=cols, fontsize=12)
-  mainAx.tick_params(pad=20)
+  mainAx.set_thetagrids(angles, labels=cols, fontsize=label_font_size)
+  mainAx.tick_params(pad=label_padding)
   for ax in axes[1:]:
     ax.grid(False)
     ax.xaxis.set_visible(False)
@@ -48,7 +50,7 @@ def radar_plot(totals_df, player_name, teams_df, cols, pct_cols, fig, inverse_co
       labels=tick_labels,
       horizontalalignment='center',
       verticalalignment='center',
-      fontsize=8,
+      fontsize=tick_font_size,
     )
     ax.spines["polar"].set_visible(False)
     if col in inverse_cols:

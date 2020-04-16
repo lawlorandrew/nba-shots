@@ -3,23 +3,7 @@ import matplotlib.pyplot as plt
 from draw_court import draw_court
 from dist_plot import dist_plot
 from shot_chart import shot_chart
-from utils import get_team_info
-
-def format_dataframe(stats_df, player_name, cols, filter_by_position, position_to_use):
-  totals_df_copy = pd.DataFrame(stats_df)
-  if (position_to_use is not None):
-    totals_df_copy.loc[totals_df_copy['Name'] == player_name, ['Pos']] = position_to_use
-  if (filter_by_position is True):
-    position = totals_df_copy.loc[totals_df_copy['Name']==player_name, ['Pos']].squeeze()
-    df_to_graph = totals_df_copy.loc[totals_df_copy['Pos'] == position]
-    sub_title = 'Compared with ' + position + 's'
-  else:
-    df_to_graph = pd.DataFrame(totals_df_copy)
-    sub_title = 'Compared with all players'
-  for col in cols:
-    df_to_graph[f'{col}_pct'] = df_to_graph[col].rank(pct=True)
-  player_stats_df = df_to_graph.loc[df_to_graph['Name'] == player_name].squeeze()
-  return df_to_graph, player_stats_df, sub_title
+from utils import get_team_info, format_dataframe
 
 #graph settings
 # player - the player to graph
