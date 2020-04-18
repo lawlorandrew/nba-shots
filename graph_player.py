@@ -66,7 +66,9 @@ def graph_player_with_shot_chart(stats_df, player_name, teams_df, cols, pct_cols
         col=col,
         team=team_info,
         ax=ax,
-        is_pct_col=is_pct_col
+        is_pct_col=is_pct_col,
+        show_colors=False,
+        fontsize=32
     )
   plt.savefig(f'output/{player_name} 2019-20 Shot Chart.png', bbox_inches='tight', pad_inches=2)
 

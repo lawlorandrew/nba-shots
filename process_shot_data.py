@@ -2,9 +2,12 @@ import json
 import pandas as pd
 
 files = [
+  './data/team_shot_data/76ers_shots.json',
+  './data/team_shot_data/blazers_shots.json',
   './data/team_shot_data/bucks_shots.json',
   './data/team_shot_data/bulls_shots.json',
   './data/team_shot_data/celtics_shots.json',
+  './data/team_shot_data/clippers_shots.json',
   './data/team_shot_data/heat_shots.json',
   './data/team_shot_data/jazz_shots.json',
   './data/team_shot_data/lakers_shots.json',
@@ -14,6 +17,7 @@ files = [
   './data/team_shot_data/pistons_shots.json',
   './data/team_shot_data/raptors_shots.json',
   './data/team_shot_data/rockets_shots.json',
+  './data/team_shot_data/spurs_shots.json',
   './data/team_shot_data/warriors_shots.json',
 ]
 all_shots_df = None

@@ -22,7 +22,7 @@ shot_df = pd.read_csv('./data/all_shots.csv')
 totals_df['FT Rate'] = totals_df['FTA'] / totals_df['FGA']
 team_per_poss_df['FT Rate'] = team_per_poss_df['FTA'] / team_per_poss_df['FGA']
 
-player = 'Dejounte Murray'  # the player to graph
+player = 'James Harden'  # the player to graph
 # whether or not the distributions should use only players of the same position, or all players
 filter_by_position = False
 # the position the player should be treated as (if None, just use default position from data)
@@ -82,16 +82,16 @@ graph_player_with_shot_chart(
 #  pct_cols=pct_cols,
 #)
 
-#fig =plt.figure(figsize=(15, 15))
-#plot_team_per_poss_radar(
-#  team_name='Boston Celtics',
-#  totals_df=team_per_poss_df,
-#  team_colors_df=team_colors_df,
-#  fig=fig
-#)
+fig =plt.figure()
+plot_team_per_poss_radar(
+  team_name='Milwaukee Bucks',
+  totals_df=team_per_poss_df,
+  team_colors_df=team_colors_df,
+  fig=fig
+)
 
 graph_team_with_shot_chart(
-  team_name='Chicago Bulls',
+  team_name='Houston Rockets',
   stats_df=team_per_poss_df,
   teams_df=team_colors_df,
   shots_df=shot_df,

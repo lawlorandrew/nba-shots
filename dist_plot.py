@@ -1,6 +1,6 @@
 import seaborn as sns
 
-def dist_plot(totals, stats_to_graph, col, team, ax, is_pct_col):
+def dist_plot(totals, stats_to_graph, col, team, ax, is_pct_col, show_colors = True, fontsize=24):
     sns.distplot(
         totals[col],
         ax=ax,
@@ -22,12 +22,14 @@ def dist_plot(totals, stats_to_graph, col, team, ax, is_pct_col):
     percentile = stats_to_graph[f'{col}_pct']
     percentile_text = 'P: ' + '{:.0f}'.format(stats_to_graph[f'{col}_pct']*100)
     value_text = value + '\n' + percentile_text
-    if (percentile > .67):
-        text_color = 'g'
-    elif (percentile > .33):
-        text_color = 'y'
-    else:
-        text_color = 'r'
+    text_color = 'black'
+    if (show_colors == True):
+      if (percentile > .67):
+          text_color = 'g'
+      elif (percentile > .33):
+          text_color = 'y'
+      else:
+          text_color = 'r'
     ax.text(
         1.1,
         0.5,
@@ -35,7 +37,7 @@ def dist_plot(totals, stats_to_graph, col, team, ax, is_pct_col):
         transform=ax.transAxes,
         horizontalalignment='right',
         verticalalignment='center',
-        fontsize=24,
+        fontsize=fontsize,
         color=text_color
     )
     ax.text(
@@ -45,5 +47,5 @@ def dist_plot(totals, stats_to_graph, col, team, ax, is_pct_col):
         transform=ax.transAxes,
         horizontalalignment='left',
         verticalalignment='center',
-        fontsize=24,
+        fontsize=fontsize,
     )
