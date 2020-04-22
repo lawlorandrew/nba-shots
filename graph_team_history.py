@@ -17,5 +17,6 @@ def graph_team_history():
   ax.axhline(0, color='gray', ls='dotted')
   ax.legend()
   plt.savefig(f'output/Chicago Bulls Team History.png')
+  plt.close()
 
 graph_team_history()

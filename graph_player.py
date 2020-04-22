@@ -71,6 +71,7 @@ def graph_player_with_shot_chart(stats_df, player_name, teams_df, cols, pct_cols
         fontsize=32
     )
   plt.savefig(f'output/{player_name} 2019-20 Shot Chart.png', bbox_inches='tight', pad_inches=2)
+  plt.close()
 
 #graph settings
 # player_name - the player to graph
@@ -131,3 +132,4 @@ def graph_player_distributions(stats_df, player_name, teams_df, cols, pct_cols, 
         is_pct_col=is_pct_col
     )
   plt.savefig(f'output/{player_name} 2019-20 Shooting Distribution.png', bbox_inches='tight', pad_inches=2)
+  plt.close()

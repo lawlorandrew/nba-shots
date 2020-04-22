@@ -22,7 +22,7 @@ shot_df = pd.read_csv('./data/all_shots.csv')
 totals_df['FT Rate'] = totals_df['FTA'] / totals_df['FGA']
 team_per_poss_df['FT Rate'] = team_per_poss_df['FTA'] / team_per_poss_df['FGA']
 
-player = 'James Harden'  # the player to graph
+player = 'Anthony Davis'  # the player to graph
 # whether or not the distributions should use only players of the same position, or all players
 filter_by_position = False
 # the position the player should be treated as (if None, just use default position from data)
@@ -90,15 +90,52 @@ plot_team_per_poss_radar(
   fig=fig
 )
 
-graph_team_with_shot_chart(
-  team_name='Houston Rockets',
-  stats_df=team_per_poss_df,
-  teams_df=team_colors_df,
-  shots_df=shot_df,
-  pct_cols=pct_cols,
-)
+teams = [
+  'Houston Rockets',
+  'Philadelphia 76ers',
+  'Chicago Bulls',
+  'San Antonio Spurs'
+]
+for team in teams:
+  graph_team_with_shot_chart(
+    team_name=team,
+    stats_df=team_per_poss_df,
+    teams_df=team_colors_df,
+    shots_df=shot_df,
+    pct_cols=pct_cols,
+  )
 
-fig = plt.figure()
+  graph_team_with_shot_chart(
+    team_name=team,
+    stats_df=team_per_poss_df,
+    teams_df=team_colors_df,
+    shots_df=shot_df,
+    pct_cols=pct_cols,
+    is_defense=True
+  )
+
+  graph_team_with_shot_chart(
+    team_name=team,
+    stats_df=team_per_poss_df,
+    teams_df=team_colors_df,
+    shots_df=shot_df,
+    pct_cols=pct_cols,
+    is_hex=True,
+    use_stats_from_shot_data=True,
+  )
+
+  graph_team_with_shot_chart(
+    team_name=team,
+    stats_df=team_per_poss_df,
+    teams_df=team_colors_df,
+    shots_df=shot_df,
+    pct_cols=pct_cols,
+    is_hex=True,
+    is_defense=True,
+    use_stats_from_shot_data=True,
+  )
+
+#fig = plt.figure()
 #plot_per_poss_radar(
 #  player_name='Kyrie Irving',
 #  totals_df=totals_df,
@@ -114,5 +151,26 @@ plot_advanced_stats_radar(
   team_colors_df=team_colors_df,
   fig=fig,
 )
+plt.close()
+
+players = [
+  'Anthony Davis',
+  'Rudy Gobert',
+  'LeBron James',
+  'Giannis Antetokounmpo',
+  'James Harden',
+  'Doug McDermott',
+  'Seth Curry',
+  'Duncan Robinson'
+]
+#for player_name in players:
+#  fig = plt.figure()
+#  plot_advanced_stats_radar(
+#    player_name=player_name,
+#    totals_df=totals_df,
+#    advanced_stats_df=advanced_stats_df,
+#    team_colors_df=team_colors_df,
+#    fig=fig,
+#  )
 
 #plot_player_profile('Giannis Antetokounmpo')
