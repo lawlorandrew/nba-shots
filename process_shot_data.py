@@ -72,7 +72,7 @@ for val in all_shots_df['SHOT_TYPE'].unique():
   teams_shot_type_df[f'{val} Made'] = grouped['SHOT_MADE_FLAG']
   teams_shot_type_df[f'{val} Attempted'] = grouped['SHOT_ATTEMPTED_FLAG']
   teams_shot_type_df[f'{val}%'] = teams_shot_type_df[f'{val} Made'] / teams_shot_type_df[f'{val} Attempted']
-  opponent_grouped = all_shots_df.loc[all_shots_df['SHOT_TYPE'] == val].groupby('TEAM_NAME').sum()
+  opponent_grouped = all_shots_df.loc[all_shots_df['SHOT_TYPE'] == val].groupby('OPPONENT').sum()
   team_opps_shot_type_df[f'Opponent {val} Made'] = opponent_grouped['SHOT_MADE_FLAG']
   team_opps_shot_type_df[f'Opponent {val} Attempted'] = opponent_grouped['SHOT_ATTEMPTED_FLAG']
   team_opps_shot_type_df[f'Opponent {val}%'] = team_opps_shot_type_df[f'Opponent {val} Made'] / team_opps_shot_type_df[f'Opponent {val} Attempted']
@@ -82,7 +82,7 @@ for val in all_shots_df['SHOT_ZONE_BASIC'].unique():
   teams_shot_zone_df[f'{val} Made'] = grouped['SHOT_MADE_FLAG']
   teams_shot_zone_df[f'{val} Attempted'] = grouped['SHOT_ATTEMPTED_FLAG']
   teams_shot_zone_df[f'{val}%'] = teams_shot_zone_df[f'{val} Made'] / teams_shot_zone_df[f'{val} Attempted']
-  opponent_grouped = all_shots_df.loc[all_shots_df['SHOT_ZONE_BASIC'] == val].groupby('TEAM_NAME').sum()
+  opponent_grouped = all_shots_df.loc[all_shots_df['SHOT_ZONE_BASIC'] == val].groupby('OPPONENT').sum()
   team_opps_shot_zone_df[f'Opponent {val} Made'] = opponent_grouped['SHOT_MADE_FLAG']
   team_opps_shot_zone_df[f'Opponent {val} Attempted'] = opponent_grouped['SHOT_ATTEMPTED_FLAG']
   team_opps_shot_zone_df[f'Opponent {val}%'] = team_opps_shot_zone_df[f'Opponent {val} Made'] / team_opps_shot_zone_df[f'Opponent {val} Attempted']

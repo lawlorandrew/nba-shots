@@ -1,6 +1,8 @@
 import seaborn as sns
 
-def dist_plot(totals, stats_to_graph, col, team, ax, is_pct_col, show_colors = True, fontsize=24):
+def dist_plot(totals, stats_to_graph, col, team, ax, is_pct_col, show_colors = True, fontsize=24, label=None):
+    if label is None:
+      label = col
     sns.distplot(
         totals[col],
         ax=ax,
@@ -38,12 +40,12 @@ def dist_plot(totals, stats_to_graph, col, team, ax, is_pct_col, show_colors = T
         horizontalalignment='right',
         verticalalignment='center',
         fontsize=fontsize,
-        color=text_color
+        color=text_color,
     )
     ax.text(
         -.1,
         0.5,
-        col,
+        label,
         transform=ax.transAxes,
         horizontalalignment='left',
         verticalalignment='center',

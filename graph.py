@@ -89,6 +89,7 @@ plot_team_per_poss_radar(
   team_colors_df=team_colors_df,
   fig=fig
 )
+plt.close()
 
 teams = [
   'Houston Rockets',
