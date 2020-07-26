@@ -56,4 +56,13 @@ def plot_advanced_stats_radar(player_name, totals_df, advanced_stats_df, team_co
         fontsize=12,
         style='italic'
     )
+    fig.text(
+        x=.02,
+        y=.05,
+        s='Data from Basketball Reference',
+        horizontalalignment='left',
+        verticalalignment='top',
+        fontsize=8,
+        style='italic'
+    )
     plt.savefig(f'output/{player_name} Advanced Radar 2019-20.png')

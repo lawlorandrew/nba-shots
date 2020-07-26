@@ -53,6 +53,15 @@ def graph_player_with_shot_chart(stats_df, player_name, teams_df, cols, pct_cols
       fontsize=40,
       style='italic'
   )
+  fig.text(
+      x=0,
+      y=-.02,
+      s='Shot Data from stats.nba.com, Statistics from Basketball Reference',
+      horizontalalignment='left',
+      verticalalignment='top',
+      fontsize=40,
+      style='italic'
+  )
   ax1 = fig.add_subplot(gs[:,:5])
   ax1 = draw_court(ax=ax1, outer_lines=False)
   player_shot_df = shot_df[shot_df['PLAYER_NAME'] == player_name]
