@@ -2,9 +2,9 @@ import matplotlib.pyplot as plt
 from radar_plot import radar_plot
 from utils import get_team_info
 
-def plot_per_poss_radar(player_name, totals_df, team_colors_df, fig, gs=111):
+def plot_per_poss_radar(player_name, team, season, totals_df, team_colors_df, fig, gs=111):
   stats_to_graph = totals_df[totals_df['Name'] == player_name].squeeze()
-  team_info = get_team_info(stats_df = totals_df, teams_df=team_colors_df, player_name=player_name)
+  team_info = get_team_info(stats_df = totals_df, teams_df=team_colors_df, team=team)
   radar_plot(
     totals_df=totals_df,
     player_name=player_name,

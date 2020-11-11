@@ -7,54 +7,54 @@ from utils import get_team_info, format_dataframe
 from draw_court import draw_court
 from dist_plot import dist_plot
 
-def plot_player_profile(player_name):
+def plot_player_profile(player_name, team, season):
   stats_df = pd.read_csv('./data/nba_per_poss.csv')
-  stats_df['Name'] = stats_df['Player'].str.split('\\').str[0]
   teams_df = pd.read_csv('./data/nba_team_colors.csv')
   advanced_stats_df = pd.read_csv('./data/nba_advanced.csv')
-  advanced_stats_df['Name'] = advanced_stats_df['Player'].str.split('\\').str[0]
-  radar_df = advanced_stats_df[['Name', 'Tm', 'MP', 'PER', 'OBPM', 'DBPM', 'AST%', '3PAr', 'TS%', 'FTr', 'TRB%', 'BLK%', 'STL%', 'TOV%', 'USG%']]
-  dists_df = stats_df[['Name', 'FGA', '3PA', '2PA', 'FTA', '2P%', '3P%', 'FT%', 'PF']]
+  radar_df = advanced_stats_df[['player', 'team_id', 'season', 'mp', 'per', 'obpm', 'dbpm', 'ast_pct', 'fg3a_per_fga_pct', 'ts_pct', 'fta_per_fga_pct', 'trb_pct', 'blk_pct', 'stl_pct', 'tov_pct', 'usg_pct']]
+  dists_df = stats_df[['player', 'team_id', 'season', 'fga_per_poss', 'fg2a_per_poss', 'fg3a_per_poss', 'fta_per_poss', 'fg2_pct', 'fg3_pct', 'ft_pct', 'pf_per_poss']]
   shot_df = pd.read_csv('./data/all_shots.csv')
 
-  merged_df = radar_df.merge(dists_df, on='Name')
-  merged_df.rename(columns={'PF': 'PF/100', 'FGA': 'FGA/100', 'FTA': 'FTA/100', '3PA': '3PA/100', '2PA': '2PA/100' }, inplace=True)
+  merged_df = radar_df.merge(dists_df, on=['player','team_id','season'])
+  merged_df.rename(columns={'pf_per_poss': 'PF/100', 'fga_per_poss': 'FGA/100', 'fta_per_poss': 'FTA/100', 'fg3a_per_poss': '3PA/100', 'fg2a_per_poss': '2PA/100' }, inplace=True)
 
   cols = [
-    'MP',
-    'PER',
-    'OBPM',
-    'DBPM',
-    'AST%',
-    '3PAr',
-    'TS%',
-    'FTr',
-    'TRB%',
-    'BLK%',
-    'STL%',
-    'TOV%',
-    'USG%',
+    'mp',
+    'per',
+    'obpm',
+    'dbpm',
+    'ast_pct',
+    'fg3a_per_fga_pct',
+    'ts_pct',
+    'fta_per_fga_pct',
+    'trb_pct',
+    'blk_pct',
+    'stl_pct',
+    'tov_pct',
+    'usg_pct',
     '3PA/100',
     '2PA/100',
     'FTA/100',
-    '2P%',
-    '3P%',
-    'FT%',
+    'fg2_pct',
+    'fg3_pct',
+    'ft_pct',
     'PF/100',
   ]
   pct_cols = [
-    '2P%',
-    '3P%',
-    'FT%',
-    '3PAr',
-    'TS%',
-    'FTr',
+    'fg2_pct',
+    'fg3_pct',
+    'ft_pct',
+    'fg3a_per_fga_pct',
+    'ts_pct',
+    'fta_per_fga_pct',
   ]
 
-  team_info = get_team_info(stats_df=stats_df, teams_df=teams_df, player_name=player_name)
+  team_info = get_team_info(stats_df=stats_df, teams_df=teams_df, team=team)
   df_to_graph, player_stats_df, sub_title = format_dataframe(
     stats_df=merged_df,
     player_name=player_name,
+    team=team,
+    season=season,
     cols=cols,
   )
   N = len(cols) + 1
@@ -92,31 +92,36 @@ def plot_player_profile(player_name):
   ax1 = draw_court(ax=ax1, outer_lines=False)
   player_shot_df = shot_df[shot_df['PLAYER_NAME'] == player_name]
   shot_chart(shot_df=player_shot_df, ax=ax1, ylim=(-47.5, 300))
-  player_stats = merged_df[merged_df['Name'] == player_name].squeeze()
+  player_stats = merged_df[
+    (merged_df['player'] == player_name) &
+    (merged_df['season'] == season) &
+    (merged_df['team_id'] == team)
+  ].squeeze()
   radar_plot(
     totals_df=merged_df,
     stats_to_graph=player_stats,
     player_name=player_name,
     team_info=team_info,
+    season=2020,
     cols=[
-      'FTr',
-      'TS%',
-      '3PAr',
-      'AST%',
-      'USG%',
-      'TOV%',
+      'fta_per_fga_pct',
+      'ts_pct',
+      'fg3a_per_fga_pct',
+      'ast_pct',
+      'usg_pct',
+      'tov_pct',
       'PF/100',
-      'STL%',
-      'BLK%',
-      'TRB%',
+      'stl_pct',
+      'blk_pct',
+      'trb_pct',
     ],
     pct_cols=[
-      'TS%',
-      '3PAr',
-      'FTr',
+      'ts_pct',
+      'fg3a_per_fga_pct',
+      'fta_per_fga_pct',
     ],
     inverse_cols=[
-      'TOV%',
+      'tov_pct',
       'PF/100',
     ],
     fig=fig,
@@ -138,4 +143,4 @@ def plot_player_profile(player_name):
     )
   plt.savefig(f'output/{player_name} 2019-20 Profile.png', bbox_inches='tight', pad_inches=2)
 
-plot_player_profile('Giannis Antetokounmpo')
+plot_player_profile('Giannis Antetokounmpo', 'MIL', 2020)

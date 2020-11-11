@@ -14,11 +14,13 @@ from utils import get_team_info, format_dataframe
 # pct_cols - the statistics that should be rendered as percentages
 # shot_df - the shot tracking df to plot
 
-def graph_player_with_shot_chart(stats_df, player_name, teams_df, cols, pct_cols, shot_df, filter_by_position = False, position_to_use = None):
-  team_info = get_team_info(stats_df=stats_df, teams_df=teams_df, player_name=player_name)
+def graph_player_with_shot_chart(stats_df, player_name, team, season, teams_df, cols, pct_cols, shot_df, filter_by_position = False, position_to_use = None):
+  team_info = get_team_info(stats_df=stats_df, teams_df=teams_df, team=team)
   df_to_graph, player_stats_df, sub_title = format_dataframe(
     stats_df=stats_df,
     player_name=player_name,
+    team=team,
+    season=season,
     cols=cols,
     filter_by_position=filter_by_position,
     position_to_use=position_to_use
@@ -47,7 +49,7 @@ def graph_player_with_shot_chart(stats_df, player_name, teams_df, cols, pct_cols
   fig.text(
       x=0,
       y=1.02,
-      s=f'{team_info["Full"]}, 2019-20',
+      s=f'{team_info["Full"]}, 2019-20 Regular Season',
       horizontalalignment='left',
       verticalalignment='top',
       fontsize=40,
@@ -55,7 +57,16 @@ def graph_player_with_shot_chart(stats_df, player_name, teams_df, cols, pct_cols
   )
   fig.text(
       x=0,
-      y=-.02,
+      y=-.06,
+      s='By Andrew Lawlor, Twitter: @lawlorpalooza',
+      horizontalalignment='left',
+      verticalalignment='top',
+      fontsize=40,
+      style='italic'
+  )
+  fig.text(
+      x=0,
+      y=-.08,
       s='Shot Data from stats.nba.com, Statistics from Basketball Reference',
       horizontalalignment='left',
       verticalalignment='top',
@@ -79,8 +90,8 @@ def graph_player_with_shot_chart(stats_df, player_name, teams_df, cols, pct_cols
         show_colors=False,
         fontsize=32
     )
-  plt.savefig(f'output/{player_name} 2019-20 Shot Chart.png', bbox_inches='tight', pad_inches=2)
-  plt.close()
+  plt.savefig(f'output/player-shot-charts/{player_name} {season} Shot Chart.png', bbox_inches='tight', pad_inches=2)
+  plt.close('all')
 
 #graph settings
 # player_name - the player to graph
@@ -90,11 +101,13 @@ def graph_player_with_shot_chart(stats_df, player_name, teams_df, cols, pct_cols
 # cols - statistics to graph
 # pct_cols - the statistics that should be rendered as percentages
 
-def graph_player_distributions(stats_df, player_name, teams_df, cols, pct_cols, filter_by_position = False, position_to_use = None):
-  team_info = get_team_info(stats_df=stats_df, teams_df=teams_df, player_name=player_name)
+def graph_player_distributions(stats_df, player_name, team, season, teams_df, cols, pct_cols, filter_by_position = False, position_to_use = None):
+  team_info = get_team_info(stats_df=stats_df, teams_df=teams_df, team=team)
   df_to_graph, player_stats_df, sub_title = format_dataframe(
     stats_df=stats_df,
     player_name=player_name,
+    team=team,
+    season=season,
     cols=cols,
     filter_by_position=filter_by_position,
     position_to_use=position_to_use
@@ -140,5 +153,5 @@ def graph_player_distributions(stats_df, player_name, teams_df, cols, pct_cols, 
         ax=ax,
         is_pct_col=is_pct_col
     )
-  plt.savefig(f'output/{player_name} 2019-20 Shooting Distribution.png', bbox_inches='tight', pad_inches=2)
-  plt.close()
+  plt.savefig(f'output/{player_name} {season} Shooting Distribution.png', bbox_inches='tight', pad_inches=2)
+  plt.close('all')

@@ -58,7 +58,7 @@ def graph_team_distributions(team_name, stats_df, teams_df, pct_cols):
   plt.close()
 
 def graph_team_with_shot_chart(team_name, stats_df, teams_df, shots_df, pct_cols, is_hex=False, is_defense=False, use_stats_from_shot_data=False):
-  offense_defense_title = 'Defensive' if is_defense else 'Offensive'
+  offense_defense_title = 'Defense' if is_defense else 'Offense'
   team_info = teams_df.loc[teams_df['Full'] == team_name].squeeze()  # team colors to use
   inverse_cols = []
   if (use_stats_from_shot_data):
@@ -68,7 +68,7 @@ def graph_team_with_shot_chart(team_name, stats_df, teams_df, shots_df, pct_cols
     if (is_defense):
       cols = ['Opponent Restricted Area%', 'Opponent Mid-Range%', 'Opponent In The Paint (Non-RA)%', 'Opponent Above the Break 3%', 'Opponent Left Corner 3%', 'Opponent Right Corner 3%'] # statistics to graph
       pct_cols = cols
-      inverse_cols = cols
+      #inverse_cols = cols
     else:
       cols = ['Restricted Area%', 'Mid-Range%', 'In The Paint (Non-RA)%', 'Above the Break 3%', 'Left Corner 3%',  'Right Corner 3%']  # statistics to graph
       pct_cols = cols
@@ -80,11 +80,11 @@ def graph_team_with_shot_chart(team_name, stats_df, teams_df, shots_df, pct_cols
     dists_title = 'Distributions\n(Relative to the NBA)'
   for col in cols:
     df_to_graph[f'{col}_pct'] = df_to_graph[col].rank(pct=True, ascending=True if col not in inverse_cols else False)
-  team_stats = df_to_graph.loc[stats_df['Team'] == team_name].squeeze()
+  team_stats = df_to_graph.loc[df_to_graph['Team'] == team_name].squeeze()
   fig = plt.figure(figsize=(40,28), constrained_layout=True)
   gs = fig.add_gridspec(len(cols), 6)
-  chart_title = team_name
-  sub_title = f'2019-20 {offense_defense_title} Shot Frequency'
+  chart_title = f'{team_name} - {offense_defense_title}'
+  sub_title = '2019-20 Shot Frequency'
   fig.suptitle(
       chart_title,
       fontsize=80,
@@ -115,7 +115,27 @@ def graph_team_with_shot_chart(team_name, stats_df, teams_df, shots_df, pct_cols
   fig.text(
       x=0,
       y=-.02,
-      s='Shot Data from stats.nba.com, Statistics from Basketball Reference',
+      #s='Shot Data from stats.nba.com, Statistics from Basketball Reference',
+      s='By Andrew Lawlor, Twitter: @lawlorpalooza',
+      horizontalalignment='left',
+      verticalalignment='top',
+      fontsize=40,
+      style='italic'
+  )
+  fig.text(
+      x=0,
+      y=-.04,
+      #s='Shot Data from stats.nba.com, Statistics from Basketball Reference',
+      s='Data from stats.nba.com',
+      horizontalalignment='left',
+      verticalalignment='top',
+      fontsize=40,
+      style='italic'
+  )
+  fig.text(
+      x=0,
+      y=-.06,
+      s='Updated 8/15/20',
       horizontalalignment='left',
       verticalalignment='top',
       fontsize=40,
@@ -128,7 +148,7 @@ def graph_team_with_shot_chart(team_name, stats_df, teams_df, shots_df, pct_cols
   else:
     team_shot_df = shots_df[shots_df['TEAM_NAME'] == team_name]
   if (is_hex):
-    shot_hex_chart(all_shot_df=shots_df,team_shot_df=team_shot_df, ax=ax1)
+    shot_hex_chart(all_shot_df=shots_df,team_shot_df=team_shot_df, ax=ax1, team_info=team_info)
   else:
     shot_chart(shot_df=team_shot_df, ax=ax1)
   for index, col in enumerate(cols):
@@ -146,5 +166,5 @@ def graph_team_with_shot_chart(team_name, stats_df, teams_df, shots_df, pct_cols
         label=labels[index]
     )
   hex_title = 'Hex' if is_hex else 'Regular'
-  plt.savefig(f'output/{team_name} 2019-20 {hex_title} {offense_defense_title} Shot Chart.png', bbox_inches='tight', pad_inches=2)
+  plt.savefig(f'output/team-shot-charts/{team_name} 2019-20 {hex_title} {offense_defense_title} Shot Chart.png', bbox_inches='tight', pad_inches=2)
   plt.close()
