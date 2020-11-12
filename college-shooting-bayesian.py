@@ -14,6 +14,7 @@ from scipy.stats import skew
 from sklearn.preprocessing import FunctionTransformer, PolynomialFeatures
 from sklearn.metrics import mean_absolute_error, mean_squared_error 
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 
 def betabinom_func(params, *args):
     a, b = params[0], params[1]
@@ -34,6 +35,12 @@ def estimate_eb(hits, at_bats):
     print(a,b)
     return ((hits+a) / (at_bats+a+b))
 
+def safe_divide(a, b):
+  if (b == 0):
+    return 0
+  else:
+    return a/b
+
 raw_df = pd.read_csv('./data/torvik.csv')
 raw_df.loc[raw_df['2PA'].isnull(), '2PA'] = 0
 raw_df.loc[raw_df['3PA'].isnull(), '3PA'] = 0
@@ -44,6 +51,7 @@ raw_df.loc[raw_df['3P'].isnull(), '3P'] = 0
 raw_df.loc[raw_df['FT'].isnull(), 'FT'] = 0
 raw_df['FGA'] = raw_df['2PA'] + raw_df['3PA']
 raw_df['FG'] = raw_df['2P'] + raw_df['3P']
+raw_df['3PAR'] = raw_df.apply(lambda row: safe_divide(row['3PA'], row['FGA']), axis=1)
 raw_df = raw_df[raw_df['Season'] > 2009]
 raw_df_player_grouped = raw_df.groupby(['Name', 'PlayerID'])
 career_df_sums = raw_df_player_grouped.sum().loc[:,['3PA', '3P', 'Far2', 'Far2A', 'FGA', 'FT', 'FTA']]
@@ -55,6 +63,10 @@ career_df['career_3p%_eb'] = estimate_eb(career_df['3P'], career_df['3PA'])
 career_df['career_ft%_eb'] = estimate_eb(career_df['FT'], career_df['FTA'])
 career_df['career_far2%_eb'] = estimate_eb(career_df['Far2'], career_df['Far2A'])
 career_df['career_3par_eb'] = estimate_eb(career_df['3PA'], career_df['FGA'])
+career_df['career_3p%'] = career_df.apply(lambda row: safe_divide(row['3P'], row['3PA']), axis=1)
+career_df['career_ft%'] = career_df.apply(lambda row: safe_divide(row['FT'], row['FTA']), axis=1)
+career_df['career_far2%'] = career_df.apply(lambda row: safe_divide(row['Far2'], row['Far2A']), axis=1)
+career_df['career_3par'] = career_df.apply(lambda row: safe_divide(row['3PA'], row['FGA']), axis=1)
 career_df = career_df.reset_index()
 # print(career_df.nlargest(20, 'career_3p%_eb').loc[:,['Name', 'career_3p%_eb']])
 raw_df['3p%_eb'] = estimate_eb(raw_df['3P'], raw_df['3PA'])
@@ -100,8 +112,12 @@ raw_df['Role'] = raw_df['Role'].astype('float64')
 raw_df['Class'] = raw_df['Class'].astype('float64')
 
 last_year_only = raw_df.sort_values('Season', ascending=False).drop_duplicates(['Name', 'PlayerID'])
-last_year_only = pd.merge(last_year_only, career_df.loc[:,['Name','PlayerID','career_3p%_eb','career_far2%_eb','career_3par_eb','career_ft%_eb']], on=['Name', 'PlayerID'])
-
+last_year_only = pd.merge(last_year_only, career_df.loc[:,['Name','PlayerID','career_3p%_eb','career_far2%_eb','career_3par_eb','career_ft%_eb', 'career_3p%', 'career_ft%', 'career_far2%', 'career_3par']], on=['Name', 'PlayerID'])
+first_year_only = raw_df.sort_values('Season', ascending=True).drop_duplicates(['Name', 'PlayerID'])
+last_year_only = pd.merge(last_year_only, first_year_only.loc[:,['Name', 'PlayerID', '3P%', 'FT%', '3PAR']], on=['Name', 'PlayerID'], suffixes=('', '_first'))
+last_year_only['3P%_delta'] = last_year_only['3P%'] - last_year_only['3P%_first']
+last_year_only['FT%_delta'] = last_year_only['FT%'] - last_year_only['FT%_first']
+last_year_only['3PAR_delta'] = last_year_only['3PAR'] - last_year_only['3PAR_first']
 nba_df = pd.read_csv('./data/draft/blocks.csv')
 nba_df = nba_df[nba_df['g'] > 0]
 nba_df['NBA_3p%_eb'] = estimate_eb(nba_df['fg3'], nba_df['fg3a'])
@@ -111,7 +127,7 @@ merged_df = pd.merge(last_year_only, nba_df, left_on=['Name'], right_on=['player
 merged_df = merged_df[merged_df['fg3_pct'].notnull()]
 merged_df = merged_df[(merged_df['fg3a'] >= 100) & (merged_df['3PA'] > 0)]
 y = merged_df['fg3_pct']
-continuous_vs = ['career_3p%_eb','career_3par_eb','career_ft%_eb', 'Role', 'Class']
+continuous_vs = ['3P%', 'FT%', '3PAR', 'career_3p%', 'career_ft%', 'career_3par']
 # continuous_vs = ['Role', '3P%', 'FT%', '3par', 'Far2%']
 # continuous_vs = ['Role', '3p%_eb', 'ft%_eb', '3par_eb', 'far2p%_eb']
 noncontinuous_vs = []
@@ -174,7 +190,50 @@ print('3P%')
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 scalers = []
-rfr = RandomForestRegressor(max_depth=2, random_state=0)
+# Number of trees in random forest
+n_estimators = [int(x) for x in np.linspace(start = 200, stop = 2000, num = 10)]
+# Number of features to consider at every split
+max_features = ['auto', 'sqrt']
+# Maximum number of levels in tree
+max_depth = [int(x) for x in np.linspace(10, 110, num = 11)]
+max_depth.append(None)
+# Minimum number of samples required to split a node
+min_samples_split = [2, 5, 10]
+# Minimum number of samples required at each leaf node
+min_samples_leaf = [1, 2, 4]
+# Method of selecting samples for training each tree
+bootstrap = [True, False]
+# Create the random grid
+# random_grid = {'n_estimators': n_estimators,
+#                'max_features': max_features,
+#                'max_depth': max_depth,
+#                'min_samples_split': min_samples_split,
+#                'min_samples_leaf': min_samples_leaf,
+#                'bootstrap': bootstrap}
+# rf_params = {'n_estimators': 1000, 'min_samples_split': 5, 'min_samples_leaf': 2, 'max_features': 'sqrt', 'max_depth': 10, 'bootstrap': True}
+# rf = RandomForestRegressor(random_state=42)
+# rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
+# rf_random.fit(X_train, y_train)
+# Create the parameter grid based on the results of random search 
+param_grid = {
+    'bootstrap': [True],
+    'max_depth': [1,5,10],
+    'max_features': [2, 3, 'sqrt'],
+    'min_samples_leaf': [2],
+    'min_samples_split': [3,5,7],
+    'n_estimators': [800, 1000, 1200]
+}
+# Create a based model
+rf = RandomForestRegressor(random_state=42)
+# Instantiate the grid search model
+grid_search = GridSearchCV(estimator = rf, param_grid = param_grid, 
+                          cv = 3, n_jobs = -1, verbose = 2)
+# rf_random = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, n_iter = 100, cv = 3, verbose=2, random_state=42, n_jobs = -1)
+# Fit the random search model
+# grid_search.fit(X_train, y_train)
+# print(grid_search.best_params_)
+# rfr = grid_search.best_estimator_
+rfr = RandomForestRegressor(bootstrap=True, max_depth=5, max_features=2, min_samples_leaf=2, min_samples_split=3, n_estimators=800, random_state=42)
 rfr.fit(X_train, y_train)
 draft_class['rfr_nba_3p%'] = rfr.predict(draft_class_X)
 print('RANDOM FOREST')
@@ -194,39 +253,39 @@ print('RMSE')
 print(mean_squared_error(y_test, rfr.predict(X_test), squared=False))
 print(mean_squared_error(y_train, rfr.predict(X_train), squared=False))
 print(mean_squared_error(y_gte, rfr.predict(X_gte), squared=False))
-for v in continuous_vs:
-  X_train[v], l = yeojohnson(X_train[v])
-  # print(v)
-  # print(l)
-  X_gte[v] = yeojohnson(X_gte[v], l)
-  draft_class_X[v] = yeojohnson(draft_class_X[v], l)
-  X_test[v] = yeojohnson(X_test[v], l)
-  X[v] = yeojohnson(X[v], l)
-for v in binned_vs:
-  X_train[v] = pd.qcut(X_train[v], 10, False)
-  X_gte[v] = pd.qcut(X_gte[v], 10, False)
-  draft_class_X[v] = pd.qcut(draft_class_X[v], 10, False)
-  X_test[v] = pd.qcut(X_test[v], 10, False)
-  X[v] = pd.qcut(X[v], 10, False)
-if (len(continuous_vs) > 0):
-  scaler = preprocessing.StandardScaler().fit(X_train.loc[:,continuous_vs])
-  X_train.loc[:,continuous_vs] = scaler.transform(X_train.loc[:,continuous_vs])
-  X_test.loc[:,continuous_vs] = scaler.transform(X_test.loc[:,continuous_vs])
-  X_gte.loc[:,continuous_vs] = scaler.transform(X_gte.loc[:,continuous_vs])
-  X.loc[:,continuous_vs] = scaler.transform(X.loc[:,continuous_vs])
-  draft_class_X.loc[:,continuous_vs] = scaler.transform(draft_class_X.loc[:,continuous_vs])
+# for v in continuous_vs:
+#   X_train[v], l = yeojohnson(X_train[v])
+#   # print(v)
+#   # print(l)
+#   X_gte[v] = yeojohnson(X_gte[v], l)
+#   draft_class_X[v] = yeojohnson(draft_class_X[v], l)
+#   X_test[v] = yeojohnson(X_test[v], l)
+#   X[v] = yeojohnson(X[v], l)
+# for v in binned_vs:
+#   X_train[v] = pd.qcut(X_train[v], 10, False)
+#   X_gte[v] = pd.qcut(X_gte[v], 10, False)
+#   draft_class_X[v] = pd.qcut(draft_class_X[v], 10, False)
+#   X_test[v] = pd.qcut(X_test[v], 10, False)
+#   X[v] = pd.qcut(X[v], 10, False)
+# if (len(continuous_vs) > 0):
+#   scaler = preprocessing.StandardScaler().fit(X_train.loc[:,continuous_vs])
+#   X_train.loc[:,continuous_vs] = scaler.transform(X_train.loc[:,continuous_vs])
+#   X_test.loc[:,continuous_vs] = scaler.transform(X_test.loc[:,continuous_vs])
+#   X_gte.loc[:,continuous_vs] = scaler.transform(X_gte.loc[:,continuous_vs])
+#   X.loc[:,continuous_vs] = scaler.transform(X.loc[:,continuous_vs])
+#   draft_class_X.loc[:,continuous_vs] = scaler.transform(draft_class_X.loc[:,continuous_vs])
 # h_reg = HuberRegressor().fit(X_train, y_train)
 # print(h_reg.score(X_train, y_train))
 # print(h_reg.coef_)
 # print(X)
 # print(h_reg.score(X_test, y_test))
 # pred = h_reg.predict(X_train)
-l_reg = LinearRegression().fit(X_train, y_train)
-print(l_reg.score(X_train, y_train))
-print(l_reg.coef_)
-# print(X)
-print(l_reg.score(X_test, y_test))
-pred = l_reg.predict(X_train)
+# l_reg = LinearRegression().fit(X_train, y_train)
+# print(l_reg.score(X_train, y_train))
+# print(l_reg.coef_)
+# # print(X)
+# print(l_reg.score(X_test, y_test))
+# pred = l_reg.predict(X_train)
 # diffs = pred - y_train
 # # plt.scatter(y_train, diffs)
 # plt.scatter(l_reg.predict(X_test), y_test)
@@ -236,61 +295,60 @@ pred = l_reg.predict(X_train)
 
 # X_gte = poly.transform(X_gte)
 
-print('LINEAR')
-print('R^2')
-print(l_reg.score(X_test, y_test))
-print(l_reg.score(X_train, y_train))
-print(l_reg.score(X_gte, y_gte))
-print('MAE')
-print(mean_absolute_error(y_test, l_reg.predict(X_test)))
-print(mean_absolute_error(y_train, l_reg.predict(X_train)))
-print(mean_absolute_error(y_gte, l_reg.predict(X_gte)))
-print('MSE')
-print(mean_squared_error(y_test, l_reg.predict(X_test)))
-print(mean_squared_error(y_train, l_reg.predict(X_train)))
-print(mean_squared_error(y_gte, l_reg.predict(X_gte)))
-print('RMSE')
-print(mean_squared_error(y_test, l_reg.predict(X_test), squared=False))
-print(mean_squared_error(y_train, l_reg.predict(X_train), squared=False))
-print(mean_squared_error(y_gte, l_reg.predict(X_gte), squared=False))
-# print('HUBER')
+# print('LINEAR')
 # print('R^2')
-# print(h_reg.score(X_test, y_test))
-# print(h_reg.score(X_train, y_train))
-# print(h_reg.score(X_gte, y_gte))
+# print(l_reg.score(X_test, y_test))
+# print(l_reg.score(X_train, y_train))
+# print(l_reg.score(X_gte, y_gte))
 # print('MAE')
-# print(mean_absolute_error(y_test, h_reg.predict(X_test)))
-# print(mean_absolute_error(y_train, h_reg.predict(X_train)))
-# print(mean_absolute_error(y_gte, h_reg.predict(X_gte)))
+# print(mean_absolute_error(y_test, l_reg.predict(X_test)))
+# print(mean_absolute_error(y_train, l_reg.predict(X_train)))
+# print(mean_absolute_error(y_gte, l_reg.predict(X_gte)))
 # print('MSE')
-# print(mean_squared_error(y_test, h_reg.predict(X_test)))
-# print(mean_squared_error(y_train, h_reg.predict(X_train)))
-# print(mean_squared_error(y_gte, h_reg.predict(X_gte)))
+# print(mean_squared_error(y_test, l_reg.predict(X_test)))
+# print(mean_squared_error(y_train, l_reg.predict(X_train)))
+# print(mean_squared_error(y_gte, l_reg.predict(X_gte)))
 # print('RMSE')
-# print(mean_squared_error(y_test, h_reg.predict(X_test), squared=False))
-# print(mean_squared_error(y_train, h_reg.predict(X_train), squared=False))
-# print(mean_squared_error(y_gte, h_reg.predict(X_gte), squared=False))
+# print(mean_squared_error(y_test, l_reg.predict(X_test), squared=False))
+# print(mean_squared_error(y_train, l_reg.predict(X_train), squared=False))
+# print(mean_squared_error(y_gte, l_reg.predict(X_gte), squared=False))
+# # print('HUBER')
+# # print('R^2')
+# # print(h_reg.score(X_test, y_test))
+# # print(h_reg.score(X_train, y_train))
+# # print(h_reg.score(X_gte, y_gte))
+# # print('MAE')
+# # print(mean_absolute_error(y_test, h_reg.predict(X_test)))
+# # print(mean_absolute_error(y_train, h_reg.predict(X_train)))
+# # print(mean_absolute_error(y_gte, h_reg.predict(X_gte)))
+# # print('MSE')
+# # print(mean_squared_error(y_test, h_reg.predict(X_test)))
+# # print(mean_squared_error(y_train, h_reg.predict(X_train)))
+# # print(mean_squared_error(y_gte, h_reg.predict(X_gte)))
+# # print('RMSE')
+# # print(mean_squared_error(y_test, h_reg.predict(X_test), squared=False))
+# # print(mean_squared_error(y_train, h_reg.predict(X_train), squared=False))
+# # print(mean_squared_error(y_gte, h_reg.predict(X_gte), squared=False))
 
 
-# draft_class_X = pd.get_dummies(draft_class_X, columns=['Role'])
+# # draft_class_X = pd.get_dummies(draft_class_X, columns=['Role'])
 # draft_class_X['3pt_interaction'] = draft_class_X['3par_eb'] * draft_class_X['3p%_eb']
 # draft_class_X = poly.transform(draft_class_X)
-stdev = np.sqrt(sum((l_reg.predict(X_test) - y_test)**2) / (len(y) - 2))
+stdev = np.sqrt(sum((rfr.predict(X_test) - y_test)**2) / (len(y_test) - 2))
 print('TEST STDEV')
 print(stdev)
-draft_class['pred_nba_3p%'] = l_reg.predict(draft_class_X)
+draft_class['pred_nba_3p%'] = rfr.predict(draft_class_X)
 gaussian_val = value = norm.ppf(.95)
-draft_class['pred_nba_3p%_low'] = l_reg.predict(draft_class_X) - gaussian_val*stdev
-draft_class['pred_nba_3p%_high'] = l_reg.predict(draft_class_X) + gaussian_val*stdev
-merged_df['pred_nba_3p%'] = l_reg.predict(X)
-merged_df['pred_nba_3p%_low'] = l_reg.predict(X) - gaussian_val*stdev
-merged_df['pred_nba_3p%_high'] = l_reg.predict(X) + gaussian_val*stdev
-print('LINEAR')
+draft_class['pred_nba_3p%_low'] = rfr.predict(draft_class_X) - gaussian_val*stdev
+draft_class['pred_nba_3p%_high'] = rfr.predict(draft_class_X) + gaussian_val*stdev
+merged_df['pred_nba_3p%'] = rfr.predict(X)
+merged_df['pred_nba_3p%_low'] = rfr.predict(X) - gaussian_val*stdev
+merged_df['pred_nba_3p%_high'] = rfr.predict(X) + gaussian_val*stdev
 print(draft_class.nlargest(20, 'pred_nba_3p%').loc[:,['Name', 'School', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high']])
-# draft_class.loc[:,['Name', 'School', '3PA', '3P', '3p%_eb', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high', 'Class', 'Draft Ranking']].to_csv('./data/draft/3p_predictions.csv')
-print(merged_df.nsmallest(20, 'pred_nba_3p%').loc[:,['Name', '3PA', '3P', 'pred_nba_3p%']])
+draft_class.loc[:,['Name', 'School', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high', 'Draft Ranking']].to_csv('./data/draft/3p_predictions_rf.csv')
+print(merged_df.nsmallest(20, 'pred_nba_3p%').loc[:,['Name', 'career_3p%', 'career_ft%', 'career_3par', 'pred_nba_3p%', 'fg3_pct']])
+print(merged_df.nlargest(20, 'pred_nba_3p%').loc[:,['Name', 'career_3p%', 'career_ft%', 'career_3par', 'pred_nba_3p%', 'fg3_pct']])
 print(merged_df.nlargest(20, 'fg3_pct').loc[:,['Name', 'fg3_pct', 'pred_nba_3p%', 'pred_nba_3p%_high']])
 print(draft_class.nsmallest(20, 'pred_nba_3p%').loc[:,['Name', '3PA', '3P', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high']])
-print('RANDOM FOREST')
 print(rfr.feature_importances_)
 print(draft_class.nlargest(20, 'rfr_nba_3p%').loc[:,['Name', 'School', 'rfr_nba_3p%']])
