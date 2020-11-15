@@ -15,6 +15,8 @@ from sklearn.preprocessing import FunctionTransformer, PolynomialFeatures
 from sklearn.metrics import mean_absolute_error, mean_squared_error 
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
+from sklearn.tree import DecisionTreeRegressor
+from sklearn import tree
 
 def betabinom_func(params, *args):
     a, b = params[0], params[1]
@@ -127,7 +129,7 @@ merged_df = pd.merge(last_year_only, nba_df, left_on=['Name'], right_on=['player
 merged_df = merged_df[merged_df['fg3_pct'].notnull()]
 merged_df = merged_df[(merged_df['fg3a'] >= 100) & (merged_df['3PA'] > 0)]
 y = merged_df['fg3_pct']
-continuous_vs = ['3P%', 'FT%', '3PAR', 'career_3p%', 'career_ft%', 'career_3par']
+continuous_vs = ['career_3p%', 'career_ft%', 'career_3par']
 # continuous_vs = ['Role', '3P%', 'FT%', '3par', 'Far2%']
 # continuous_vs = ['Role', '3p%_eb', 'ft%_eb', '3par_eb', 'far2p%_eb']
 noncontinuous_vs = []
@@ -234,25 +236,27 @@ grid_search = GridSearchCV(estimator = rf, param_grid = param_grid,
 # print(grid_search.best_params_)
 # rfr = grid_search.best_estimator_
 rfr = RandomForestRegressor(bootstrap=True, max_depth=5, max_features=2, min_samples_leaf=2, min_samples_split=3, n_estimators=800, random_state=42)
-rfr.fit(X_train, y_train)
-draft_class['rfr_nba_3p%'] = rfr.predict(draft_class_X)
-print('RANDOM FOREST')
+# rfr.fit(X_train, y_train)
+dt = DecisionTreeRegressor(max_depth=3)
+dt.fit(X_train, y_train)
+draft_class['dt_nba_3p%'] = dt.predict(draft_class_X)
+print('DECISION TREE')
 print('R^2')
-print(rfr.score(X_test, y_test))
-print(rfr.score(X_train, y_train))
-print(rfr.score(X_gte, y_gte))
+print(dt.score(X_test, y_test))
+print(dt.score(X_train, y_train))
+print(dt.score(X_gte, y_gte))
 print('MAE')
-print(mean_absolute_error(y_test, rfr.predict(X_test)))
-print(mean_absolute_error(y_train, rfr.predict(X_train)))
-print(mean_absolute_error(y_gte, rfr.predict(X_gte)))
+print(mean_absolute_error(y_test, dt.predict(X_test)))
+print(mean_absolute_error(y_train, dt.predict(X_train)))
+print(mean_absolute_error(y_gte, dt.predict(X_gte)))
 print('MSE')
-print(mean_squared_error(y_test, rfr.predict(X_test)))
-print(mean_squared_error(y_train, rfr.predict(X_train)))
-print(mean_squared_error(y_gte, rfr.predict(X_gte)))
+print(mean_squared_error(y_test, dt.predict(X_test)))
+print(mean_squared_error(y_train, dt.predict(X_train)))
+print(mean_squared_error(y_gte, dt.predict(X_gte)))
 print('RMSE')
-print(mean_squared_error(y_test, rfr.predict(X_test), squared=False))
-print(mean_squared_error(y_train, rfr.predict(X_train), squared=False))
-print(mean_squared_error(y_gte, rfr.predict(X_gte), squared=False))
+print(mean_squared_error(y_test, dt.predict(X_test), squared=False))
+print(mean_squared_error(y_train, dt.predict(X_train), squared=False))
+print(mean_squared_error(y_gte, dt.predict(X_gte), squared=False))
 # for v in continuous_vs:
 #   X_train[v], l = yeojohnson(X_train[v])
 #   # print(v)
@@ -334,21 +338,26 @@ print(mean_squared_error(y_gte, rfr.predict(X_gte), squared=False))
 # # draft_class_X = pd.get_dummies(draft_class_X, columns=['Role'])
 # draft_class_X['3pt_interaction'] = draft_class_X['3par_eb'] * draft_class_X['3p%_eb']
 # draft_class_X = poly.transform(draft_class_X)
-stdev = np.sqrt(sum((rfr.predict(X_test) - y_test)**2) / (len(y_test) - 2))
+stdev = np.sqrt(sum((dt.predict(X_test) - y_test)**2) / (len(y_test) - 2))
 print('TEST STDEV')
 print(stdev)
-draft_class['pred_nba_3p%'] = rfr.predict(draft_class_X)
+draft_class['pred_nba_3p%'] = dt.predict(draft_class_X)
 gaussian_val = value = norm.ppf(.95)
-draft_class['pred_nba_3p%_low'] = rfr.predict(draft_class_X) - gaussian_val*stdev
-draft_class['pred_nba_3p%_high'] = rfr.predict(draft_class_X) + gaussian_val*stdev
-merged_df['pred_nba_3p%'] = rfr.predict(X)
-merged_df['pred_nba_3p%_low'] = rfr.predict(X) - gaussian_val*stdev
-merged_df['pred_nba_3p%_high'] = rfr.predict(X) + gaussian_val*stdev
+draft_class['pred_nba_3p%_low'] = dt.predict(draft_class_X) - gaussian_val*stdev
+draft_class['pred_nba_3p%_high'] = dt.predict(draft_class_X) + gaussian_val*stdev
+merged_df['pred_nba_3p%'] = dt.predict(X)
+merged_df['pred_nba_3p%_low'] = dt.predict(X) - gaussian_val*stdev
+merged_df['pred_nba_3p%_high'] = dt.predict(X) + gaussian_val*stdev
 print(draft_class.nlargest(20, 'pred_nba_3p%').loc[:,['Name', 'School', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high']])
 draft_class.loc[:,['Name', 'School', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high', 'Draft Ranking']].to_csv('./data/draft/3p_predictions_rf.csv')
 print(merged_df.nsmallest(20, 'pred_nba_3p%').loc[:,['Name', 'career_3p%', 'career_ft%', 'career_3par', 'pred_nba_3p%', 'fg3_pct']])
 print(merged_df.nlargest(20, 'pred_nba_3p%').loc[:,['Name', 'career_3p%', 'career_ft%', 'career_3par', 'pred_nba_3p%', 'fg3_pct']])
 print(merged_df.nlargest(20, 'fg3_pct').loc[:,['Name', 'fg3_pct', 'pred_nba_3p%', 'pred_nba_3p%_high']])
 print(draft_class.nsmallest(20, 'pred_nba_3p%').loc[:,['Name', '3PA', '3P', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high']])
-print(rfr.feature_importances_)
-print(draft_class.nlargest(20, 'rfr_nba_3p%').loc[:,['Name', 'School', 'rfr_nba_3p%']])
+print(dt.feature_importances_)
+print(draft_class.nlargest(20, 'dt_nba_3p%').loc[:,['Name', 'School', 'dt_nba_3p%']])
+tree.plot_tree(
+  dt,
+  feature_names=X.columns
+)
+plt.savefig('./decision_tree.png')
