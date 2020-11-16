@@ -356,8 +356,9 @@ print(merged_df.nlargest(20, 'fg3_pct').loc[:,['Name', 'fg3_pct', 'pred_nba_3p%'
 print(draft_class.nsmallest(20, 'pred_nba_3p%').loc[:,['Name', '3PA', '3P', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high']])
 print(dt.feature_importances_)
 print(draft_class.nlargest(20, 'dt_nba_3p%').loc[:,['Name', 'School', 'dt_nba_3p%']])
+fig, ax = plt.subplots(dpi=500)
 tree.plot_tree(
   dt,
-  feature_names=X.columns
+  feature_names=X.columns,
 )
 plt.savefig('./decision_tree.png')
