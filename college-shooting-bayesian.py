@@ -52,7 +52,7 @@ raw_df.loc[raw_df['FT'].isnull(), 'FT'] = 0
 raw_df['FGA'] = raw_df['2PA'] + raw_df['3PA']
 raw_df['FG'] = raw_df['2P'] + raw_df['3P']
 raw_df['3PAR'] = raw_df.apply(lambda row: safe_divide(row['3PA'], row['FGA']), axis=1)
-raw_df = raw_df[raw_df['Season'] > 2009]
+# raw_df = raw_df[raw_df['Season'] > 2009]
 raw_df_player_grouped = raw_df.groupby(['Name', 'PlayerID'])
 career_df_sums = raw_df_player_grouped.sum().loc[:,['3PA', '3P', 'Far2', 'Far2A', 'FGA', 'FT', 'FTA']]
 career_df_min = raw_df_player_grouped['Season'].min()
@@ -121,13 +121,15 @@ last_year_only['3PAR_delta'] = last_year_only['3PAR'] - last_year_only['3PAR_fir
 nba_df = pd.read_csv('./data/draft/blocks.csv')
 nba_df = nba_df[nba_df['g'] > 0]
 nba_df['NBA_3p%_eb'] = estimate_eb(nba_df['fg3'], nba_df['fg3a'])
-nba_df = nba_df[nba_df['player'] != 'Chris Wright'] # ignoring for now bc of dupes
+# nba_df = nba_df[nba_df['player'] != 'Chris Wright'] # ignoring for now bc of dupes
 
 merged_df = pd.merge(last_year_only, nba_df, left_on=['Name'], right_on=['player'])
+# merged_df[merged_df['3PA'].isnull()].loc[:, 'player'].to_csv('unmatched.csv')
 merged_df = merged_df[merged_df['fg3_pct'].notnull()]
+# print(merged_df['noooo'])
 merged_df = merged_df[(merged_df['fg3a'] >= 100) & (merged_df['3PA'] > 0)]
 y = merged_df['fg3_pct']
-continuous_vs = ['3P%', 'FT%', '3PAR', 'career_3p%', 'career_ft%', 'career_3par']
+continuous_vs = ['3P%', 'FT%', '3PAR', 'Far2%', 'career_3p%', 'career_ft%', 'career_3par', 'career_far2%']
 # continuous_vs = ['Role', '3P%', 'FT%', '3par', 'Far2%']
 # continuous_vs = ['Role', '3p%_eb', 'ft%_eb', '3par_eb', 'far2p%_eb']
 noncontinuous_vs = []
@@ -189,6 +191,10 @@ X_gte = merged_df_gte.loc[:, cols]
 print('3P%')
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+# X_test, X_val, y_test, y_val = train_test_split(X_test, y_test, test_size=0.25, random_state=42)
+# print(X_val.shape)
+print(X_test.shape)
+print(X_train.shape)
 scalers = []
 # Number of trees in random forest
 n_estimators = [int(x) for x in np.linspace(start = 200, stop = 2000, num = 10)]
@@ -346,6 +352,7 @@ merged_df['pred_nba_3p%_low'] = rfr.predict(X) - gaussian_val*stdev
 merged_df['pred_nba_3p%_high'] = rfr.predict(X) + gaussian_val*stdev
 print(draft_class.nlargest(20, 'pred_nba_3p%').loc[:,['Name', 'School', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high']])
 draft_class.loc[:,['Name', 'School', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high', 'Draft Ranking']].to_csv('./data/draft/3p_predictions_rf.csv')
+merged_df.loc[:, ['Name', 'pred_nba_3p%', 'fg3_pct'] + cols].to_csv('past_predictions.csv')
 print(merged_df.nsmallest(20, 'pred_nba_3p%').loc[:,['Name', 'career_3p%', 'career_ft%', 'career_3par', 'pred_nba_3p%', 'fg3_pct']])
 print(merged_df.nlargest(20, 'pred_nba_3p%').loc[:,['Name', 'career_3p%', 'career_ft%', 'career_3par', 'pred_nba_3p%', 'fg3_pct']])
 print(merged_df.nlargest(20, 'fg3_pct').loc[:,['Name', 'fg3_pct', 'pred_nba_3p%', 'pred_nba_3p%_high']])
