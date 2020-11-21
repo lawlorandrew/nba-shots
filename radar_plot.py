@@ -113,7 +113,7 @@ def radar_plot(totals_df, stats_to_graph, player_name, team_info, cols, pct_cols
     fig.text(
         x=.02,
         y=.88,
-        s=f'Position: Guard',
+        s=f'Position: Wing',
         horizontalalignment='left',
         verticalalignment='top',
         fontsize=12,
@@ -131,7 +131,7 @@ def radar_plot(totals_df, stats_to_graph, player_name, team_info, cols, pct_cols
     fig.text(
         x=.02,
         y=.06,
-        s='Data from Basketball Reference',
+        s='Data from barttorvik.com',
         horizontalalignment='left',
         verticalalignment='top',
         fontsize=8,

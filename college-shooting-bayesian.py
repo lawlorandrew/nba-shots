@@ -41,7 +41,7 @@ def safe_divide(a, b):
   else:
     return a/b
 
-raw_df = pd.read_csv('./data/torvik.csv')
+raw_df = pd.read_csv('./data/torvik-shooting.csv')
 raw_df.loc[raw_df['2PA'].isnull(), '2PA'] = 0
 raw_df.loc[raw_df['3PA'].isnull(), '3PA'] = 0
 raw_df.loc[raw_df['FTA'].isnull(), 'FTA'] = 0
@@ -351,8 +351,11 @@ merged_df['pred_nba_3p%'] = rfr.predict(X)
 merged_df['pred_nba_3p%_low'] = rfr.predict(X) - gaussian_val*stdev
 merged_df['pred_nba_3p%_high'] = rfr.predict(X) + gaussian_val*stdev
 print(draft_class.nlargest(20, 'pred_nba_3p%').loc[:,['Name', 'School', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high']])
-draft_class.loc[:,['Name', 'School', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high', 'Draft Ranking']].to_csv('./data/draft/3p_predictions_rf.csv')
-merged_df.loc[:, ['Name', 'pred_nba_3p%', 'fg3_pct'] + cols].to_csv('past_predictions.csv')
+draft_class.loc[:,['Name', 'School', 'pred_nba_3p%', 'pred_nba_3p%_low', 'pred_nba_3p%_high', 'Draft Ranking'] + cols].to_csv('./data/draft/3p_predictions_rf.csv')
+merged_df.loc[:, ['Name', 'pred_nba_3p%', 'fg3_pct', 'Class'] + cols].to_csv('past_predictions.csv')
+merged_df['error'] = np.abs((merged_df['fg3_pct'] - merged_df['pred_nba_3p%'])/merged_df['pred_nba_3p%'])
+sum_by_class = merged_df.groupby('Class').mean()['error']
+print(sum_by_class)
 print(merged_df.nsmallest(20, 'pred_nba_3p%').loc[:,['Name', 'career_3p%', 'career_ft%', 'career_3par', 'pred_nba_3p%', 'fg3_pct']])
 print(merged_df.nlargest(20, 'pred_nba_3p%').loc[:,['Name', 'career_3p%', 'career_ft%', 'career_3par', 'pred_nba_3p%', 'fg3_pct']])
 print(merged_df.nlargest(20, 'fg3_pct').loc[:,['Name', 'fg3_pct', 'pred_nba_3p%', 'pred_nba_3p%_high']])

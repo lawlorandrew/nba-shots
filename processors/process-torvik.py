@@ -14,6 +14,7 @@ for filename in os.listdir(directory):
       row['Name'] = datum[0]
       row['School'] = datum[1]
       row['Conference'] = datum[2]
+      row['G'] = datum[3]
       row['Min%'] = datum[4]
       row['ORtg'] = datum[5]
       row['USG'] = datum[6]

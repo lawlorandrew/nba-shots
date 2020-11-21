@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from collections import Counter
 import numpy as np
 
-mock_drafts_df = pd.read_csv('./data/draft/draft_projections.csv')
+mock_drafts_df = pd.read_csv('./data/draft/draft projections.csv')
 team_colors_df = pd.read_csv('./data/nba_team_colors.csv')
 mock_drafts_df = pd.merge(mock_drafts_df, team_colors_df, left_on='Team', right_on='Team')
 drafts = ['Ringer-KOC', 'Vecenie-The Athletic', 'Peek-Yahoo',
@@ -12,7 +12,7 @@ drafts = ['Ringer-KOC', 'Vecenie-The Athletic', 'Peek-Yahoo',
 
 fig, axs = plt.subplots(6, 5, sharey=True, figsize=(8,8))
 fig.tight_layout(rect=[0, 0.03, 1, 0.95], w_pad=1.5, h_pad=3.5)
-fig.suptitle('NBA Composite Mock Draft 11/12 | @lawlorpalooza')
+fig.suptitle('NBA Composite Mock Draft 11/17 | @lawlorpalooza')
 for index, row in mock_drafts_df.iterrows():
   labels, values = zip(*Counter(row.loc[drafts].values.tolist()).most_common())
   labels = [f'{label.split(" ")[1]}' for label in labels]
@@ -47,4 +47,4 @@ fig.text(
   fontsize=6,
   style='italic'
 )
-plt.savefig('./output/Mock Drafts 2020 11-12 Update.png')
+plt.savefig('./output/Mock Drafts 2020 11-17 Update.png')
