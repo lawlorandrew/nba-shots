@@ -16,6 +16,7 @@ from draw_court import draw_court
 import json
 import unidecode
 from player_scatter import player_scatter
+from big_men_passing import big_men_passing
 
 totals_df = pd.read_csv('./data/nba_per_poss.csv')
 totals_df['Name_Raw'] = totals_df['player'].str.split('\\').str[0]
@@ -115,26 +116,26 @@ for team in teams:
   #   is_defense=True
   # )
 
-  graph_team_with_shot_chart(
-    team_name=team,
-    stats_df=team_per_poss_df,
-    teams_df=team_colors_df,
-    shots_df=shot_df,
-    pct_cols=pct_cols,
-    is_hex=True,
-    use_stats_from_shot_data=False,
-  )
+  # graph_team_with_shot_chart(
+  #   team_name=team,
+  #   stats_df=team_per_poss_df,
+  #   teams_df=team_colors_df,
+  #   shots_df=shot_df,
+  #   pct_cols=pct_cols,
+  #   is_hex=True,
+  #   use_stats_from_shot_data=False,
+  # )
 
-  graph_team_with_shot_chart(
-    team_name=team,
-    stats_df=team_per_poss_df,
-    teams_df=team_colors_df,
-    shots_df=shot_df,
-    pct_cols=pct_cols,
-    is_hex=True,
-    is_defense=True,
-    use_stats_from_shot_data=True,
-  )
+  # graph_team_with_shot_chart(
+  #   team_name=team,
+  #   stats_df=team_per_poss_df,
+  #   teams_df=team_colors_df,
+  #   shots_df=shot_df,
+  #   pct_cols=pct_cols,
+  #   is_hex=True,
+  #   is_defense=True,
+  #   use_stats_from_shot_data=True,
+  # )
 
 #fig = plt.figure()
 #plot_per_poss_radar(
@@ -147,8 +148,8 @@ for team in teams:
 players = [
   # ('Montrezl Harrell', 'LAC', 2020),
   # ('Lauri Markkanen', 'CHI', 2019)
-  ('John Wall', 'WAS', 2017),
-  ('Bradley Beal', 'WAS', 2020),
+  # ('John Wall', 'WAS', 2017),
+  # ('Bradley Beal', 'WAS', 2020),
 ]
 players_without_teams = advanced_stats_df[
   advanced_stats_df['team_id'] == 'TOT'
@@ -424,24 +425,66 @@ for player in players:
 #       ]
 #     ))
 #   ]
-print(shot_df.columns)
-deep_shot_df = shot_df[shot_df['SHOT_DISTANCE'] > 28]
-deep_shot_df_grouped = deep_shot_df.groupby(['PLAYER_NAME', 'PLAYER_ID', 'TEAM_ID', 'TEAM_NAME']).sum()
-# catch_shoot_df = pd.read_csv('./data/catch_shoot.csv')
-deep_shot_df_grouped = deep_shot_df_grouped.reset_index()
-deep_shot_df_grouped = deep_shot_df_grouped[deep_shot_df_grouped['SHOT_ATTEMPTED_FLAG'] >= 10]
-print(deep_shot_df_grouped[deep_shot_df_grouped['PLAYER_NAME'] == 'Davis Bertans'])
-deep_shot_df_grouped = pd.merge(deep_shot_df_grouped, team_colors_df, left_on='TEAM_NAME', right_on='Full')
-print(deep_shot_df_grouped.columns)
-# catch_shoot_df = catch_shoot_df[catch_shoot_df['CATCH_SHOOT_FG3A'] >= 100]
+# print(shot_df.columns)
+# deep_shot_df = shot_df[shot_df['SHOT_DISTANCE'] > 28]
+# deep_shot_df_grouped = deep_shot_df.groupby(['PLAYER_NAME', 'PLAYER_ID', 'TEAM_ID', 'TEAM_NAME']).sum()
+# # catch_shoot_df = pd.read_csv('./data/catch_shoot.csv')
+# deep_shot_df_grouped = deep_shot_df_grouped.reset_index()
+# deep_shot_df_grouped = deep_shot_df_grouped[deep_shot_df_grouped['SHOT_ATTEMPTED_FLAG'] >= 10]
+# print(deep_shot_df_grouped[deep_shot_df_grouped['PLAYER_NAME'] == 'Davis Bertans'])
+# deep_shot_df_grouped = pd.merge(deep_shot_df_grouped, team_colors_df, left_on='TEAM_NAME', right_on='Full')
+# print(deep_shot_df_grouped.columns)
+# # catch_shoot_df = catch_shoot_df[catch_shoot_df['CATCH_SHOOT_FG3A'] >= 100]
+df = pd.read_csv('./data/tracking/post_ups.csv')
+df = pd.merge(df, team_colors_df, left_on='TEAM_ABBREVIATION', right_on='NBA_Abbr')
+# print(df.columns)
+# df['MP'] = df['MIN'] * df['GP']
+# df = df[df['MP'] >= 25]
+# df['PIE'] = df['PIE']*100
+# df = df[df['PASSES_MADE'] >= 10]
+print(df.columns)
+df = df[df['POST_TOUCHES'] >= 4]
 player_scatter(
-  df=deep_shot_df_grouped,
-  xcol='SHOT_MADE_FLAG',
-  ycol='SHOT_ATTEMPTED_FLAG',
-  xlabel='3PA',
-  ylabel='3PM',
-  title='Deep Shots, 2019-20 NBA Season'
+  df=df,
+  xcol='POST_TOUCHES',
+  ycol='POST_TOUCH_AST',
+  xlabel='Post-Ups Per Game',
+  ylabel='Post-Up Assists Per Game',
+  title='Post-Up Passing',
+  subtitle='2020-21 Regular Season, Min. 4 Post-Ups Per Game, Through 1-1'
 )
+
+# draft_df = pd.read_csv('./data/2020_draft.csv')
+# draft_df['Name_Raw'] = draft_df['Player'].str.split('\\').str[0]
+# draft_df['Name'] = draft_df['Name_Raw'].apply(lambda x: unidecode.unidecode(x))
+# df = pd.merge(df, draft_df, left_on='PLAYER_NAME', right_on='Name')
+# df = df.sort_values(by='Pk',ascending=True)
+# print(df['PLAYER_NAME'])
+# df['Name Abbr'] = df['PLAYER_NAME'].str.split(" ").str[1]
+# fig, ax = plt.subplots(dpi=500, figsize=(10,4))
+# df = df[df['MIN'] >= 10]
+# N = df.shape[0]
+# X = np.arange(N)
+# width = 0.5
+# ax.bar(X, df['PIE'], width, color=df['Primary'])
+# ax.set_xticks(X)
+# ax.set_xticklabels(df['Name Abbr'], rotation=90, fontsize=6)
+# ax.set_ylabel('Player Impact Estimate')
+# ax.set_xlabel('Player')
+# fig.tight_layout(rect=[0, 0.03, 1, 0.95], w_pad=1.5, h_pad=3.5)
+# fig.suptitle('Preseason Player Impact', y=1, fontsize=20)
+# ax.set_title('Draft Year = 2019, Season = 2020, Min. 10 Minutes Played')
+# plt.savefig('./output/Preseason Rookie Impact.png')
+# print(df['Name'])
+# player_scatter(
+#   df=df,
+#   xcol='Pk',
+#   ycol='PIE',
+#   xlabel='Pick',
+#   ylabel='Player Impact Estimate',
+#   title='Preseason Rookie Efficiency',
+#   subtitle='Draft Year = 2020, Season = 2020'
+# )
 
 # logo_scatter(
 #   df=team_advanced_stats_df,

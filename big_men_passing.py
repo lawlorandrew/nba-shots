@@ -2,21 +2,17 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import matplotlib.pyplot as plt
 import numpy as np
 
-def player_scatter(df, xcol, ycol, xlabel, ylabel, title, subtitle):
+def big_men_passing(df, xcol, ycol, xlabel, ylabel, title, subtitle):
   fig, ax = plt.subplots(dpi=500, figsize=(10,6))
   ax.set_ylabel(ylabel)
   ax.set_xlabel(xlabel)
-  fig.tight_layout(rect=[0, 0.03, 1, 0.95], w_pad=1.5, h_pad=3.5)
-  fig.suptitle(title, y=1, fontsize=20)
+  fig.tight_layout(rect=[0, 0.03, 1, 0.95], w_pad=0, h_pad=3.5)
+  fig.suptitle(title, y=1, x=.52, fontsize=16)
   ax.set_title(subtitle)
-  # ax.set_xlim(0,35)
-  # ax.set_ylim(0.7,1.2)
   ax.scatter(df[xcol], df[ycol], color=df['Primary'], alpha=0)
-  ax.set_xlim(2.5,16)
-  ax.set_ylim(-0.5,2.5)
-  # ax.axhline(.358, color='black', label='2019-20 League Average', zorder=5, alpha=0.5, ls='dotted')
+  ax.set_xlim(0,100)
+  ax.set_ylim(-1,15)
   for index, row in df.iterrows():
-    # if (row['Name'] == 'Kris Dunn'):
     ax.text(s=row['PLAYER_NAME'].split(' ')[1], x=row[xcol], y=row[ycol], horizontalalignment='center', bbox=dict(facecolor=row['Primary'], alpha=0.2, zorder=10), zorder=10)
     # else:
     #   ax.text(s=row['Name'].split(' ')[1], x=row[xcol], y=row[ycol], horizontalalignment='center', bbox=dict(facecolor=row['Primary'], alpha=0.2))
